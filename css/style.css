@@ -1,0 +1,259 @@
+body{
+	margin: 0px;
+	left: 0px;
+	font-family: "arial";
+}
+
+
+
+/*左侧设计区域*/
+.chart-design{
+	padding-left: 10px;
+	position: absolute;
+	bottom: 2px;
+	top: 2px;
+	right: 230px;
+	left: 0px;
+	width: auto;
+}
+
+/*右侧工具栏*/
+.chart-right-panel{
+	float: right;
+	width: 228px;
+	border-left: 2px solid rgb(210,209,210);
+    position: absolute;
+    top: 2px;
+    bottom: 0px;
+    right: 0px;
+    right: 0px;
+}
+
+.chart-ratio{
+	bottom: 0px;
+	border-top: 2px solid rgb(210,209,210);
+	height: 20px;
+	position: absolute;
+	width: 100%;
+}
+
+.chart-ratio-form{
+	width: 150px;
+	border: none;
+	height: 20px;
+	padding-right: 10px;
+	border-right: 2px solid rgb(210,209,210);
+}
+
+.rare-ratio{
+	margin-left: 172px;
+	margin-top: -26px;
+	width: 40px;
+	margin-bottom: 0px;
+}
+
+#rear-ratio-display{
+	width: 60px;
+}
+
+.chart-ratio-cover{
+	float: right;
+	margin-right: 228px;
+	background: rgb(255,255,255);
+	width: 20px;
+	height: 20px;
+	margin-top: -21px;
+}
+
+/*属性面板*/
+.chart-list{
+	color: rgb(136,136,136);
+	font-size: 14px;
+	margin-top: 19px;
+}
+
+.chart-list h4{
+	font-weight: lighter;
+	background: rgb(248,248,248);
+	padding-left: 10px;
+	height: 20px;
+	padding-top: 4px;
+	margin-top: -20px;
+	border-bottom: 1px solid rgb(210,209,210);
+	border-top: 1px solid rgb(210,209,210);
+}
+
+.chart-list h4:hover{
+	background: rgb(238,238,238);
+	cursor: pointer;
+}
+
+.chart-list .list-content{
+	color: rgb(69,69,69);
+	margin-top: -20px;
+	padding-left: 10px;
+	padding-top: 5px;
+	margin-bottom: 22px;
+}
+
+/************拖动/画流程图部分CSS************/
+
+.draggable{
+	float: left;
+  	width: 40px;
+  	height: 20px;
+  	margin-top: 3px;
+  	margin-bottom:10px;
+  	background: rgb(255,255,255);
+  	text-align: center;
+    border:2px solid rgb(0,0,0);
+    font-size: 14px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    margin-right: 10px;
+    font-size: 12px;
+ }
+
+.draggable:hover{
+  	cursor:pointer;
+}
+
+.droppable{
+	margin-top: 0px;
+	padding-left: 0px;		
+}
+
+.drop-active{
+  	background: rgb(238,238,238);
+}
+
+/*圆角矩形*/
+.roundedRect{
+	border-radius: 8px;
+}
+
+/*圆*/
+.circle{
+	height: 30px;
+	width: 30px;
+	border-radius: 15px;
+	padding: 0px;
+	
+}
+
+/*菱形*/
+.rhombus{
+	padding: 0px;
+	width: 24px;
+	height: 24px;
+	margin-top: 12px;
+	margin-left: 18px;
+	font-size: 12px;
+	-webkit-transform-origin: 0 100%;
+	-moz-transform-origin: 0 100%;
+	-o-transform-origin: 0 100%;
+	-ms-transform-origin: 0 100%;
+	transform-origin: 0 100%;
+	-webkit-transform:rotate(-45deg);
+	-moz-transform:rotate(-45deg);
+	-o-transform:rotate(-45deg);
+	-ms-transform:rotate(-45deg);
+	transform:rotate(-45deg);
+}
+
+/*以下是创建新部件的时候改变的属性(和右侧工具栏的大小不同)*/
+
+.new-circle{
+	width: 30px;
+	height: 30px;
+	border-radius: 30px;
+}
+
+.new-rhombus{
+	width: 60px;
+	height: 60px;
+}
+
+.new-roundedRect,.new-rect{width: 40px;}
+
+/*以上是创建新部件的时候改变的属性(和右侧工具栏的大小不同)*/
+
+/******************右侧属性栏******************/
+
+/*location|size|fill|shadow*/
+.lo-xy-display{
+	margin-top: 28px;
+}
+
+.chart-location-form{border:none;}
+
+.chart-fill-display{margin-top: 16px;}
+
+.chart-shadow-display{margin-top: 10px;}
+
+.chart-size-border-display{margin-top: 14px;}
+
+.chart-fill-border-display{
+	margin-top: 16px;
+}
+
+.chart-fill-border-selector{
+	width: 144px;
+}
+
+/*font*/
+#json-display-area{
+	min-width: 208px;
+	max-width: 208px;
+	bottom: 20px;
+	height: auto;
+	width: 208px;
+}
+
+/*颜色选择器的位置*/
+.label-flag-color{
+
+}
+
+/*jsPlumb拖动事件*/
+._jsPlumb_drag_select * {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;    
+}
+
+/*保存为图片矿口*/
+.save-form{
+	position: absolute;
+	border:1px solid rgb(160,160,160);
+	width: 60%;
+	margin-top: 20px;
+	left: 20%;
+	border-bottom: 2px solid rgb(160,160,160);
+}
+
+.save-heading{
+	background: rgb(228,226,227);
+	height: 25px;
+	border-bottom: 2px solid rgb(210,209,210);
+	padding:10px;
+	font-size: 20px;
+}
+
+.save-json,.save-img{
+	padding: 10px;
+}
+
+.save-json h5,.save-img h5{
+	margin-top:5px;
+	margin-bottom: 5px;
+}
+
+#save-json-form-display{
+	width: 98.975%;
+	max-width: 98.75%;
+	height: 120px;
+}

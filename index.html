@@ -1,0 +1,44 @@
+<!DOCTYPE HTML>
+<html lang="zh">
+<head>
+	<title>工作流程图</title>
+	<meta charset="utf-8">
+	<link rel="stylesheet" type="text/css" href="css/style.css">
+</head>
+
+<body>
+  <div class="chart-content">
+    <div id="chart-container" class="chart-design droppable"></div>
+    <div class="chart-right-panel">      <div class="chart-right-list">
+        <div class="chart-list chart-object">
+          <h4>图形</h4>
+          <div class="list-content">
+              <div class="area">
+                  <div class="draggable" id="rect"></div>
+                  <div class="draggable roundedRect" id="roundedRect"></div>
+                  <div class="draggable circle" id="circle"></div>
+                  <!--<div class="draggable" id="rhombus"></div>-->
+
+                <div id="line-select-div">
+                  <div>
+                    <!--<button class="top-menu-selector" id="line-Straight" onclick="setLineStraight()">直线</button>-->
+                    <!--<button class="top-menu-selector" id="line-Bezier" onclick="setLineBezier()">曲线</button>-->
+                    <!--<button class="top-menu-selector" id="line-Flowchart" onclick="setLineFlowchart()">流程线</button>-->
+                  </div>
+                </div>
+              </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="external/jquery/jquery.js"></script>
+  <script src="js/jquery-ui.js"></script>
+  <script src="js/jquery.jsPlumb-1.4.0-all.js"></script>
+  <script src="js/html2canvas.js"></script>
+  <script src="js/self.js"></script>
+
+</body>
+</html>
