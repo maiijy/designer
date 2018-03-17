@@ -312,8 +312,10 @@
              * 	event				-	event to fire
              * 	value				-	value to pass to the event listener(s).
              *  originalEvent	 	- 	the original event from the browser
-             */			
+             */
+            // 重新定义fire事件  ：出发事件 触发对象 一般是JQuery.Event
             this.fire = function(event, value, originalEvent) {
+                
                 if (!eventsSuspended && _listeners[event]) {
                     for ( var i = 0; i < _listeners[event].length; i++) {
                         // doing it this way rather than catching and then possibly re-throwing means that an error propagated by this
@@ -884,10 +886,40 @@
 		    };
 		    
 		    this.isHover = function() { return _hover; };
-            
+
+		    this.bindLineListeners = function(obj,_self,_hoverFunction){
+                //绑定鼠标事件
+                console.log(_hoverFunction);
+                obj.bind("click", function(ep, e) { _self.fire("click", _self, e); });
+                obj.bind("dblclick", function(ep, e) { _self.fire("dblclick", _self, e); });
+                obj.bind("contextmenu", function(ep, e) { _self.fire("contextmenu", _self, e); });
+                obj.bind("mouseenter", function(ep, e) {
+                    if (!_self.isHover()) {
+                        _hoverFunction(true);
+                        _self.fire("mouseenter", _self, e);
+                    }
+                });
+                obj.bind("mouseover",function (ep,e) {
+                    $(obj).css({cursor: n-resize});
+                });
+                obj.bind("mouseexit", function(ep, e) {
+                    if (_self.isHover()) {
+                        _hoverFunction(false);
+                        _self.fire("mouseexit", _self, e);
+                    }
+                });
+                obj.bind("mousedown", function(ep, e) {
+                    console.log(e.clientX);
+                    _self.fire("mousedown", _self, e);
+                });
+                obj.bind("mouseup", function(ep, e) {
+                    _self.fire("mouseup", _self, e);
+                });
+            };
+
             this.bindListeners = function(obj, _self, _hoverFunction) {
                 //绑定鼠标事件
-                
+                console.log(_self);
                 obj.bind("click", function(ep, e) { _self.fire("click", _self, e); });
                 obj.bind("dblclick", function(ep, e) { _self.fire("dblclick", _self, e); });
                 obj.bind("contextmenu", function(ep, e) { _self.fire("contextmenu", _self, e); });
@@ -1413,6 +1445,7 @@
 		 * @param ui UI object from current library's event system. optional.
 		 * @param timestamp timestamp for this paint cycle. used to speed things up a little by cutting down the amount of offset calculations we do.
 		 */
+		//keypoint!!!
 		_draw = function(element, ui, timestamp, clearEdits) {
 			
 			// TODO is it correct to filter by headless at this top level? how would a headless adapter ever repaint?
@@ -2358,6 +2391,7 @@
 				if (filterList(scopes, i)) {
 					for ( var j = 0, jj = connectionsByScope[i].length; j < jj; j++) {
 						var c = connectionsByScope[i][j];
+						console.log(c)
 						if (filterList(sources, c.sourceId) && filterList(targets, c.targetId))
 							_addOne(i, c);
 					}
@@ -3206,7 +3240,7 @@
 			_currentInstance.bind("ready", fn);
 		};
 
-		// repaint some element's endpoints and connections
+		// repaint some element's endpoints and connections keypoint!!!
 		this.repaint = function(el, ui, timestamp) {
 			// support both lists...
 			if (typeof el == 'object' && el.length)
@@ -3533,7 +3567,7 @@
 				    
     };
 
-// --------------------- static instance + AMD registration -------------------------------------------	
+// --------------------- static instance + AMD 异步模块定义registration -------------------------------------------
 	
 // create static instance and assign to window if window exists.	
 	var jsPlumb = new jsPlumbInstance();
@@ -3873,6 +3907,7 @@
             // store this for next time.
             endpoint._continuousAnchorEdge = edgeId;
         };
+        //
 		this.redraw = function(elementId, ui, timestamp, offsetToUI, clearEdits) {
 		
 			if (!jsPlumbInstance.isSuspendDrawing()) {
@@ -4445,7 +4480,7 @@
                 return a;	
             },
             _path = function(segments) {
-		        debugger;
+		        
                 var anchorsPerFace = anchorCount / segments.length, a = [],
                     _computeFace = function(x1, y1, x2, y2, fractionalLength) {
                         anchorsPerFace = anchorCount * fractionalLength;
@@ -4494,7 +4529,7 @@
 				]);	
 			},
 			"Path":function(params) {
-			    debugger;
+			    
                 var points = params.points, p = [], tl = 0;
 				for (var i = 0; i < points.length - 1; i++) {
                     var l = Math.sqrt(Math.pow(points[i][2] - points[i][0]) + Math.pow(points[i][3] - points[i][1]));
@@ -4538,6 +4573,7 @@
         var stopped = false;
         return {
             drag : function() {
+                console.log('drag');
                 if (stopped) {
                     stopped = false;
                     return true;
@@ -4545,6 +4581,7 @@
                 var _ui = jsPlumb.CurrentLibrary.getUIPosition(arguments, _jsPlumb.getZoom());
         
                 if (placeholder.element) {
+                    debugger;
                     jsPlumb.CurrentLibrary.setOffset(placeholder.element, _ui);                    
                     _jsPlumb.repaint(placeholder.element, _ui);
                 }
@@ -4557,6 +4594,7 @@
         
     // creates a placeholder div for dragging purposes, adds it to the DOM, and pre-computes its offset.    
     var _makeDraggablePlaceholder = function(placeholder, parent, _jsPlumb) {
+        // debugger;
         var n = document.createElement("div");
         n.style.position = "absolute";
         var placeholderDragElement = jsPlumb.CurrentLibrary.getElementObject(n);
@@ -5639,7 +5677,7 @@
                 "pointer-events":params["pointer-events"]
             },
             renderMode = _jsPlumb.getRenderMode();
-            
+
             if (_ju.isString(connectorSpec)) 
                 connector = makeConnector(renderMode, connectorSpec, connectorArgs); // lets you use a string as shorthand.
             else if (_ju.isArray(connectorSpec)) {
@@ -5649,7 +5687,7 @@
                     connector = makeConnector(renderMode, connectorSpec[0], _ju.merge(connectorSpec[1], connectorArgs));
             }
             // binds mouse listeners to the current connector.
-            self.bindListeners(connector, self, _internalHover);
+            self.bindLineListeners(connector, self, _internalHover);
             
             self.canvas = connector.canvas;
 
@@ -5669,7 +5707,7 @@
 
         this.getConnector = function() { return connector; };
         
-// INITIALISATION CODE			
+// INITIALISATION CODE	 initalsation code
                     
         this.source = _gel(params.source);
         this.target = _gel(params.target);
@@ -5771,12 +5809,12 @@
             self.endpointsToDeleteOnDetach = params.endpointsToDeleteOnDetach;
                     
         // TODO these could surely be refactored into some method that tries them one at a time until something exists
+        // 
         self.setConnector(this.endpoints[0].connector || 
                           this.endpoints[1].connector || 
                           params.connector || 
                           _jsPlumb.Defaults.Connector || 
                           jsPlumb.Defaults.Connector, true);
-
         if (params.path)
             connector.setPath(params.path);
         
@@ -9000,7 +9038,7 @@
 	jsPlumb.Overlays.svg.Custom = jsPlumb.Overlays.Custom;
 		
 	var AbstractSvgArrowOverlay = function(superclass, originalArgs) {
-	    debugger;
+	    
     	superclass.apply(this, originalArgs);
     	jsPlumb.jsPlumbUIComponent.apply(this, originalArgs);
         this.isAppendedAtTopLevel = false;
@@ -9009,7 +9047,7 @@
     		// only draws on connections, not endpoints.
     		if (params.component.svg && containerExtents) {
 	    		if (path == null) {
-	    		    debugger;
+	    		    
 	    			path = _node("path", {
 	    				"pointer-events":"all"	
 	    			});
@@ -9034,7 +9072,7 @@
 	    	}
     	};
     	var makePath = function(d) {
-    	    debugger;
+    	    
     		return "M" + d.hxy.x + "," + d.hxy.y +
     				" L" + d.tail[0].x + "," + d.tail[0].y + 
     				" L" + d.cxy.x + "," + d.cxy.y + 

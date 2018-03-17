@@ -81,7 +81,7 @@ var hollowCircle = {
     //anchor: "AutoDefault",
     isSource: true,    //是否可以拖动(作为连线出发点)
     //connector: ["Flowchart", { stub: [40, 60], gap: 10, cornerRadius: 5, alwaysRespectStubs: true }],  //连接线的样式种类有[Bezier],[Flowchart],[StateMachine ],[Straight ]
-    connector: ["Straight", { curviness:100 } ],//设置连线为贝塞尔曲线
+    connector: ["Flowchart", { curviness:100 } ],//设置连线为贝塞尔曲线
     isTarget: true,    //是否可以放置(连线终点)
     maxConnections: -1,    // 设置连接点最多可以连接几条线
     // connectorOverlays: [["Arrow", { width: 10, length: 10, location: 1 }]]
@@ -109,7 +109,7 @@ var list=[];//全部的连接点列表
 function getSingleChartJson(id){
 
     var connects=[];
-    debugger;
+    
     for(var i in list){
         for(var j in list[i]){
             connects.push({
@@ -277,11 +277,10 @@ $(document).ready(function(){
         scope: "dragflag",
         // 右侧拖动元素
         drop:function(event,ui){
-            alert("drop");
             sessionStorage['idIndex']=sessionStorage['idIndex']+1;
 
             //获取鼠标坐标
-            debugger;
+            
             var left=parseInt(ui.offset.left-$(this).offset().left);
             var top=parseInt(ui.offset.top-$(this).offset().top)+4;
 
@@ -313,6 +312,7 @@ $(document).ready(function(){
             // changeValue("#"+trueId);
 
             list=jsPlumb.getAllConnections();//获取所有的连接
+            console.log(list);
 
             //元素ID网上加,防止重复
             sessionStorage['idIndex']=sessionStorage['idIndex']+1;
@@ -399,14 +399,14 @@ $(document).ready(function(){
 
     //*****************右侧属性面板内容改变同步到设计区域******************
 
-    jsPlumb.bind("mousedown",function (e,callback) {
-        debugger;
+    jsPlumb.bind("mouseenter",function (e,callback) {
+        
        alert("on");
     });
 
     //删除连接线
     jsPlumb.bind("click",function(conn,originalEvent){
-        debugger;
+        
         if(confirm("确定删除吗?")){
             jsPlumb.detach(conn);
         }
@@ -612,14 +612,13 @@ $(document).ready(function(){
     $(document).on('drag','._jsPlumb_connector ',function () {
        alert("1");
     });
-    $('svg').on('mousedown',function (e) {
-       alert("onmousedown ");
-        console.log(e);
-    });
+
+
     //序列化全部流程图数据,json格式
     function save(){
 
         var connects=[];
+        // console.log(jsPlumb.getAllConnections());
 
         for(var i in list){
             for(var j in list[i]){
@@ -633,7 +632,6 @@ $(document).ready(function(){
 
         var blocks=[];
         $(".droppable .draggable").each(function(idx, elem){
-            alert("foreach");
             var elem=$(elem);
             var rareHTML=elem.html();
             var resultHTML=rareHTML;
@@ -658,12 +656,12 @@ $(document).ready(function(){
             //填充
             var fillColor=elem.css('backgroundColor');
             (fillColor=='') ? fillColor='rgb(255,255,255)':fillColor;
-            //渐近度
-            var fillBlurRange=elem.css('boxShadow');//rgb(0, 0, 0) 10px 10px 17px 20px inset
-            var fillBlurSplit=fillBlurRange.split(' ');
-            (fillBlurRange=='') ? fillBlurRange='0':fillBlurRange=fillBlurSplit[5];
-            //渐近色
-            var fillBlurColor=fillBlurSplit[0]+fillBlurSplit[1]+fillBlurSplit[2];
+            // // //渐近度
+            // var fillBlurRange=elem.css('boxShadow');//rgb(0, 0, 0) 10px 10px 17px 20px inset
+            // var fillBlurSplit=fillBlurRange.split(' ');
+            // (fillBlurRange=='') ? fillBlurRange='0':fillBlurRange=fillBlurSplit[5];
+            // //渐近色
+            // var fillBlurColor=fillBlurSplit[0]+fillBlurSplit[1]+fillBlurSplit[2];
             //线框样式
             var borderStyle=elem.css('border-left-style');
             (borderStyle=='') ? borderStyle='solid':borderStyle;
@@ -687,11 +685,11 @@ $(document).ready(function(){
                 BlockHeight:parseInt(elem.css("height"),10),
                 BlockBorderRadius:borderRadius,
                 BlockBackground:fillColor,
-                BlockFillBlurRange:fillBlurRange,
-                BlockFillBlurColor:fillBlurColor,
+                // BlockFillBlurRange:fillBlurRange,
+                // BlockFillBlurColor:fillBlurColor,
                 BlockBorderStyle:borderStyle,
                 BlockBorderWidth:borderWidth,
-                BlockborderColor:borderColor,
+                BlockborderColor:borderColor
             });
 
         });
@@ -701,14 +699,45 @@ $(document).ready(function(){
         return serliza;
     }
 
+    // var dataJson = '{"connects":[{"ConnectionId":"con_12","PageSourceId":"rect-010","PageTargetId":"roundedRect-01112"}],"block":[{"BlockId":"rect-010","BlockContent":"","BlockX":498,"BlockY":108,"BlockWidth":40,"BlockHeight":20,"BlockBorderRadius":"0px","BlockBackground":"rgb(255, 255, 255)","BlockBorderStyle":"solid","BlockBorderWidth":"2px","BlockborderColor":"rgb(0, 0, 0)"},{"BlockId":"roundedRect-01112","BlockContent":"","BlockX":740,"BlockY":110,"BlockWidth":40,"BlockHeight":20,"BlockBorderRadius":"8px","BlockBackground":"rgb(255, 255, 255)","BlockBorderStyle":"solid","BlockBorderWidth":"2px","BlockborderColor":"rgb(0, 0, 0)"}]}';
+    var dataJson;
+    var dataxml;
+    $('#export').on('click',function () {
+       // dataJson = save();
+        dataxml = fnJson2xml(save());
+
+    });
+    $('#import').on('click',function () {
+        console.log(dataxml);
+        dataJson = fnXml2json(dataxml);
+        console.log(dataJson);
+       loadChartByJSON(dataJson);
+    });
     //通过json加载流程图
     function loadChartByJSON(data){
+        $('.droppable').html("");
         var unpack=JSON.parse(data);
 
         if(!unpack){
             return false;
         }
-
+        var flowConnector={
+            anchors:["RightMiddle","LeftMiddle"],
+            endpoint: ["Dot", { radius: 1 }],  //端点的外形
+            connectorStyle: connectorPaintStyle,//连接线的色彩,大小样式
+            connectorHoverStyle: connectorHoverStyle,
+            paintStyle: {
+                strokeStyle: "rgb(0,0,0)",
+                fillStyle: "rgb(0,0,0)",
+                opacity: 0.5,
+                radius: 1,
+                lineWidth: 1
+            },//端点的色彩样式
+            isSource: true,    //是否可以拖动(作为连线出发点)
+            connector: ["Flowchart", { curviness:100 } ],//设置连线为贝塞尔曲线
+            isTarget: true,    //是否可以放置(连线终点)
+            maxConnections: -1,    // 设置连接点最多可以连接几条线
+        };
 
         for(var i=0;i<unpack['block'].length;i++){
             var BlockId=unpack['block'][i]['BlockId'];
@@ -738,7 +767,136 @@ $(document).ready(function(){
                 .css('border-style',borderStyle)
                 .css('border-color',borderColor)
         }
+        debugger;
+        for(var i=0;i<unpack['connects'].length;i++) {
+            var ConnectionId = unpack['connects'][i]['ConnectionId'];
+            var PageSourceId = unpack['connects'][i]['PageSourceId'];
+            var PageTargetId = unpack['connects'][i]['PageTargetId'];
 
+            //用jsPlumb添加锚点
+            // jsPlumb.addEndpoint(PageSourceId,{anchors: "TopCenter"},hollowCircle);
+            jsPlumb.addEndpoint(PageSourceId, {anchors: "RightMiddle"}, hollowCircle);
+            // jsPlumb.addEndpoint(PageSourceId,{anchors: "BottomCenter"},hollowCircle);
+            jsPlumb.addEndpoint(PageSourceId, {anchors: "LeftMiddle"}, hollowCircle);
+
+            // jsPlumb.addEndpoint(PageTargetId,{anchors: "TopCenter"},hollowCircle);
+            jsPlumb.addEndpoint(PageTargetId, {anchors: "RightMiddle"}, hollowCircle);
+            // jsPlumb.addEndpoint(PageTargetId,{anchors: "BottomCenter"},hollowCircle);
+            jsPlumb.addEndpoint(PageTargetId, {anchors: "LeftMiddle"}, hollowCircle);
+
+            jsPlumb.draggable(PageSourceId);
+            jsPlumb.draggable(PageTargetId);
+
+            $("#" + PageSourceId).draggable({containment: "parent"});//保证拖动不跨界
+            $("#" + PageTargetId).draggable({containment: "parent"});//保证拖动不跨界
+
+            jsPlumb.connect({
+                    source: PageSourceId, target: PageTargetId
+                },flowConnector);
+        }
 
         return true;
     }
+
+    function fnXml2json(data){
+        //将xml字符串转为json
+        debugger;
+        var xotree = new XML.ObjTree();
+        // var xmlText = document.getElementById("xml").value;
+        var json = xotree.parseXML(data);
+        //将json对象转为格式化的字符串
+        var dumper = new JKL.Dumper();
+        var jsonText = dumper.dump(json);
+        return jsonText;
+        // document.getElementById("json").value = jsonText;
+    }
+    function fnJson2xml(data){
+        var xotree = new XML.ObjTree();
+        // var jsonText = document.getElementById("json").value;
+//将json字符串转为json对象后转为xml字符串
+        var json = eval("(" + data + ")");
+        var xml = xotree.writeXML(json);
+        //使用jkl-dumper.js中的formatXml方法将xml字符串格式化
+        var xmlText = formatXml(xml);
+        return xmlText;
+        // document.getElementById("xml").value = xmlText;
+    }
+
+    function xmltojson(xmlObj,nodename,isarray){
+        var obj=$(xmlObj);
+        var itemobj={};
+        var nodenames="";
+        var getAllAttrs=function(node){//递归解析xml 转换成json对象
+            var _itemobj={};
+            var notNull=false;
+            var nodechilds=node.childNodes;
+            var childlenght=nodechilds.length;
+            var _attrs=node.attributes;
+            var firstnodeName="#text";
+            try{
+                firstnodeName=nodechilds[0].nodeName;
+            }catch(e){}
+            if((childlenght>0&&firstnodeName!="#text")||_attrs.length>0){
+                var _childs=nodechilds;
+                var _childslength=nodechilds.length;
+                var _fileName_="";
+                if(undefined!=_attrs){
+                    var _attrslength=_attrs.length;
+                    for(var i=0; i<_attrslength; i++){//解析xml节点属性
+                        var attrname=_attrs[i].nodeName;
+                        var attrvalue=_attrs[i].nodeValue;
+                        _itemobj[attrname]=attrvalue;
+                    }
+                }
+                for (var j = 0; j < _childslength; j++) {//解析xml子节点
+                    var _node = _childs[j];
+                    var _fildName = _node.nodeName;
+                    if("#text"==_fildName){break;};
+                    if(_itemobj[_fildName]!=undefined){//如果有重复的节点需要转为数组格式
+                        if(!(_itemobj[_fildName] instanceof Array)){
+                            var a=_itemobj[_fildName];
+                            _itemobj[_fildName]=[a];//如果该节点出现大于一个的情况 把第一个的值存放到数组中
+                        }
+                    }
+                    var _fildValue=getAllAttrs(_node);
+                    try{
+                        _itemobj[_fildName].push(_fildValue);
+                    }catch(e){
+                        _itemobj[_fildName]=_fildValue;
+                        _itemobj["length"]=1;
+                    }
+                }
+            }else{
+                _itemobj=(node.textContent==undefined)?node.text:node.textContent;
+            }
+            return _itemobj;
+        };
+        if(nodename){
+            nodenames=nodename.split("/")
+        }
+        for(var i=0;i<nodenames.length;i++){
+            obj=obj.find(nodenames[i]);
+        }
+        $(obj).each(function(key,item){
+            if(itemobj[item.nodeName]!=undefined){
+                if(!(itemobj[item.nodeName] instanceof Array)){
+                    var a=itemobj[item.nodeName];
+                    itemobj[item.nodeName]=[a];
+                }
+                itemobj[item.nodeName].push(getAllAttrs(item));
+            }else{
+                if(nodenames.length>0){
+                    itemobj[item.nodeName]=getAllAttrs(item);
+                }else{
+                    itemobj[item.firstChild.nodeName]=getAllAttrs(item.firstChild);
+                }
+            }
+        });
+        if(nodenames.length>1){
+            itemobj=itemobj[nodenames[nodenames.length-1]];
+        }
+        if(isarray&&!(itemobj instanceof Array)&&itemobj!=undefined){
+            itemobj=[itemobj];
+        }
+        return itemobj;
+    };

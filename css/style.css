@@ -87,10 +87,14 @@ body{
 	background: rgb(238,238,238);
 	cursor: pointer;
 }
+.chart-list .list-button{
+	padding-left:50%;
+	width: 50%;
+}
 
 .chart-list .list-content{
 	color: rgb(69,69,69);
-	margin-top: -20px;
+	/*margin-top: -20px;*/
 	padding-left: 10px;
 	padding-top: 5px;
 	margin-bottom: 22px;
