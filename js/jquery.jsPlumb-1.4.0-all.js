@@ -1,20 +1,3 @@
-/*
- * jsPlumb
- * 
- * Title:jsPlumb 1.4.0
- * 
- * Provides a way to visually connect elements on an HTML page, using either SVG or VML.  
- * 
- * This file contains the util functions
- *
- * Copyright (c) 2010 - 2013 Simon Porritt (http://jsplumb.org)
- * 
- * http://jsplumb.org
- * http://github.com/sporritt/jsplumb
- * http://code.google.com/p/jsplumb
- * 
- * Dual licensed under the MIT and GPL2 licenses.
- */
 ;(function() {
     
     var pointHelper = function(p1, p2, fn) {
@@ -392,24 +375,8 @@
 				jsPlumbUtil.removeElement(elements[i]);
 		}
     };
-})();/*
- * jsPlumb
- * 
- * Title:jsPlumb 1.4.0
- * 
- * Provides a way to visually connect elements on an HTML page, using either SVG, Canvas
- * elements, or VML.  
- * 
- * This file contains the base functionality for DOM type adapters. 
- *
- * Copyright (c) 2010 - 2013 Simon Porritt (http://jsplumb.org)
- * 
- * http://jsplumb.org
- * http://github.com/sporritt/jsplumb
- * http://code.google.com/p/jsplumb
- * 
- * Dual licensed under the MIT and GPL2 licenses.
- */
+})();
+
 ;(function() {
     
 		var canvasAvailable = !!document.createElement('canvas').getContext,
@@ -627,24 +594,7 @@
         }
     };
     
-})();/*
- * jsPlumb
- * 
- * Title:jsPlumb 1.4.0
- * 
- * Provides a way to visually connect elements on an HTML page, using either SVG, Canvas
- * elements, or VML.  
- * 
- * This file contains the jsPlumb core code.
- *
- * Copyright (c) 2010 - 2013 Simon Porritt (simon.porritt@gmail.com)
- * 
- * http://jsplumb.org
- * http://github.com/sporritt/jsplumb
- * http://code.google.com/p/jsplumb
- * 
- * Dual licensed under the MIT and GPL2 licenses.
- */
+})();
 
 ;(function() {
 			
@@ -3009,6 +2959,7 @@
 					});
 					// when the user presses the mouse, add an Endpoint, if we are enabled.
 					var mouseDownListener = function(e) {
+					    debugger;
 						// if disabled, return.
                         
 						if (!_sourcesEnabled[idToRegisterAgainst]) return;
@@ -3593,22 +3544,7 @@
 	
 })();
 /*
- * jsPlumb
- * 
- * Title:jsPlumb 1.4.0
- * 
- * Provides a way to visually connect elements on an HTML page, using either SVG, Canvas
- * elements, or VML.  
- * 
- * This file contains the code for creating and manipulating anchors.
- *
- * Copyright (c) 2010 - 2013 Simon Porritt (simon.porritt@gmail.com)
- * 
- * http://jsplumb.org
- * http://github.com/sporritt/jsplumb
- * http://code.google.com/p/jsplumb
- * 
- * Dual licensed under the MIT and GPL2 licenses.
+    所有关于箭头的
  */
 ;(function() {	
     
@@ -4566,7 +4502,11 @@
 		a.type = "Perimeter";
 		return a;
 	};
-})();;(function() {
+})();
+/*
+    连线的一些设置
+ */
+;(function() {
         
     // create the drag handler for a connection
     var _makeConnectionDragHandler = function(placeholder, _jsPlumb) {
@@ -5535,7 +5475,11 @@
 
         return self;        					
     };	
-})();;(function() {
+})();
+/*
+    关于连接
+ */
+;(function() {
     
     jsPlumb.Connection = function(params) {
         var self = this, visible = true, _internalHover, _superClassHover,
@@ -6054,32 +5998,20 @@
         
 // END PAINTING    
     }; // END Connection class            
-})();/*
- * jsPlumb
- * 
- * Title:jsPlumb 1.4.0
- * 
- * Provides a way to visually connect elements on an HTML page, using either SVG, Canvas
- * elements, or VML.  
- * 
- * This file contains the default Connectors, Endpoint and Overlay definitions.
+})();
+/**
  *
- * Copyright (c) 2010 - 2013 Simon Porritt (http://jsplumb.org)
- * 
- * http://jsplumb.org
- * http://github.com/sporritt/jsplumb
- * http://code.google.com/p/jsplumb
- * 
- * Dual licensed under the MIT and GPL2 licenses.
+ * Helper class to consume unused mouse events by components that are DOM elements and
+ * are used by all of the different rendering modes.
+ *
  */
-
 ;(function() {	
 				
 	/**
-	 * 
+	 *
 	 * Helper class to consume unused mouse events by components that are DOM elements and
 	 * are used by all of the different rendering modes.
-	 * 
+	 *
 	 */
 	jsPlumb.DOMElementComponent = function(params) {
 		jsPlumb.jsPlumbUIComponent.apply(this, arguments);
@@ -7490,27 +7422,7 @@
 
  // ********************************* END OF OVERLAY DEFINITIONS ***********************************************************************
     
-})();/*
- * jsPlumb
- *
- * Title:jsPlumb 1.4.0
- *
- * Provides a way to visually connect elements on an HTML page, using either SVG, Canvas
- * elements, or VML.
- *
- * This file contains the state machine connectors.
- *
- * Thanks to Brainstorm Mobile Solutions for supporting the development of these.
- *
- * Copyright (c) 2010 - 2013 Simon Porritt (simon.porritt@gmail.com)
- *
- * http://jsplumb.org
- * http://github.com/sporritt/jsplumb
- * http://code.google.com/p/jsplumb
- *
- * Dual licensed under the MIT and GPL2 licenses.
- */
-
+})();
 ;(function() {
 
 	var Line = function(x1, y1, x2, y2) {
@@ -7756,24 +7668,7 @@
 					//  }
 	//			    }
               //}
-    *//*
- * jsPlumb
- * 
- * Title:jsPlumb 1.4.0
- * 
- * Provides a way to visually connect elements on an HTML page, using either SVG, Canvas
- * elements, or VML.  
- * 
- * This file contains the 'flowchart' connectors, consisting of vertical and horizontal line segments.
- *
- * Copyright (c) 2010 - 2013 Simon Porritt (simon.porritt@gmail.com)
- * 
- * http://jsplumb.org
- * http://github.com/sporritt/jsplumb
- * http://code.google.com/p/jsplumb
- * 
- * Dual licensed under the MIT and GPL2 licenses.
- */
+    */
 ;(function() {
    
     /**
@@ -8073,24 +7968,7 @@
             }
         };
     };
-})();/*
- * jsPlumb
- * 
- * Title:jsPlumb 1.4.0
- * 
- * Provides a way to visually connect elements on an HTML page, using either SVG, Canvas
- * elements, or VML.  
- * 
- * This file contains the VML renderers.
- *
- * Copyright (c) 2010 - 2013 Simon Porritt (http://jsplumb.org)
- * 
- * http://jsplumb.org
- * http://github.com/sporritt/jsplumb
- * http://code.google.com/p/jsplumb
- * 
- * Dual licensed under the MIT and GPL2 licenses.
- */
+})();
 
 ;(function() {
 	
@@ -8558,24 +8436,7 @@
     
 // ******************************* /vml overlays *****************************************************    
     
-})();/*
- * jsPlumb
- * 
- * Title:jsPlumb 1.4.0
- * 
- * Provides a way to visually connect elements on an HTML page, using either SVG, Canvas
- * elements, or VML.  
- * 
- * This file contains the SVG renderers.
- *
- * Copyright (c) 2010 - 2013 Simon Porritt (http://jsplumb.org)
- * 
- * http://jsplumb.org
- * http://github.com/sporritt/jsplumb
- * http://code.google.com/p/jsplumb
- * 
- * Dual licensed under the MIT and GPL2 licenses.
- */
+})();
 
 /**
  * SVG support for jsPlumb.
@@ -9153,24 +9014,7 @@
         };        
 
     };
-})();/*
- * jsPlumb
- * 
- * Title:jsPlumb 1.4.0
- * 
- * Provides a way to visually connect elements on an HTML page, using either SVG, Canvas
- * elements, or VML.  
- * 
- * This file contains the jQuery adapter.
- *
- * Copyright (c) 2010 - 2013 Simon Porritt (http://jsplumb.org)
- * 
- * http://jsplumb.org
- * http://github.com/sporritt/jsplumb
- * http://code.google.com/p/jsplumb
- * 
- * Dual licensed under the MIT and GPL2 licenses.
- */ 
+})();
 /* 
  * the library specific functions, such as find offset, get id, get attribute, extend etc.  
  * the full list is:
