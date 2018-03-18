@@ -615,8 +615,8 @@ $(document).ready(function(){
 
 
     //序列化全部流程图数据,json格式
-    function save(){
-
+    function saveConnection() {
+        var obj = {};
         var connects=[];
         // console.log(jsPlumb.getAllConnections());
 
@@ -629,7 +629,11 @@ $(document).ready(function(){
                 });
             }
         }
-
+        obj['connects'] = connects;
+        return JSON.stringify(obj);
+    }
+    function save(){
+        var obj = {};
         var blocks=[];
         $(".droppable .draggable").each(function(idx, elem){
             var elem=$(elem);
@@ -694,23 +698,24 @@ $(document).ready(function(){
 
         });
 
-        var serliza="{"+'"connects":'+JSON.stringify(connects)+',"block":'+JSON.stringify(blocks)+"}";
-        console.log(serliza);
-        return serliza;
+       obj['block'] = blocks;
+        return JSON.stringify(obj);
     }
 
     // var dataJson = '{"connects":[{"ConnectionId":"con_12","PageSourceId":"rect-010","PageTargetId":"roundedRect-01112"}],"block":[{"BlockId":"rect-010","BlockContent":"","BlockX":498,"BlockY":108,"BlockWidth":40,"BlockHeight":20,"BlockBorderRadius":"0px","BlockBackground":"rgb(255, 255, 255)","BlockBorderStyle":"solid","BlockBorderWidth":"2px","BlockborderColor":"rgb(0, 0, 0)"},{"BlockId":"roundedRect-01112","BlockContent":"","BlockX":740,"BlockY":110,"BlockWidth":40,"BlockHeight":20,"BlockBorderRadius":"8px","BlockBackground":"rgb(255, 255, 255)","BlockBorderStyle":"solid","BlockBorderWidth":"2px","BlockborderColor":"rgb(0, 0, 0)"}]}';
     var dataJson;
-    var dataxml;
+    var dataxml1;
+    var dataxml2;
     $('#export').on('click',function () {
-       // dataJson = save();
-        dataxml = fnJson2xml(save());
-
+       dataJson = save();
+        // dataxml1 = fnJson2xml(saveConnection());
+        // dataxml2 = fnJson2xml(save());
     });
     $('#import').on('click',function () {
-        console.log(dataxml);
-        dataJson = fnXml2json(dataxml);
-        console.log(dataJson);
+        // console.log(dataxml1);
+        // console.log(dataxml2);
+        // console.log(fnXml2json(dataxml1));
+        // Xml2Json(dataxml2)
        loadChartByJSON(dataJson);
     });
     //通过json加载流程图
@@ -798,18 +803,8 @@ $(document).ready(function(){
         return true;
     }
 
-    function fnXml2json(data){
-        //将xml字符串转为json
-        debugger;
-        var xotree = new XML.ObjTree();
-        // var xmlText = document.getElementById("xml").value;
-        var json = xotree.parseXML(data);
-        //将json对象转为格式化的字符串
-        var dumper = new JKL.Dumper();
-        var jsonText = dumper.dump(json);
-        return jsonText;
-        // document.getElementById("json").value = jsonText;
-    }
+
+
     function fnJson2xml(data){
         var xotree = new XML.ObjTree();
         // var jsonText = document.getElementById("json").value;
@@ -822,81 +817,42 @@ $(document).ready(function(){
         // document.getElementById("xml").value = xmlText;
     }
 
-    function xmltojson(xmlObj,nodename,isarray){
-        var obj=$(xmlObj);
-        var itemobj={};
-        var nodenames="";
-        var getAllAttrs=function(node){//递归解析xml 转换成json对象
-            var _itemobj={};
-            var notNull=false;
-            var nodechilds=node.childNodes;
-            var childlenght=nodechilds.length;
-            var _attrs=node.attributes;
-            var firstnodeName="#text";
-            try{
-                firstnodeName=nodechilds[0].nodeName;
-            }catch(e){}
-            if((childlenght>0&&firstnodeName!="#text")||_attrs.length>0){
-                var _childs=nodechilds;
-                var _childslength=nodechilds.length;
-                var _fileName_="";
-                if(undefined!=_attrs){
-                    var _attrslength=_attrs.length;
-                    for(var i=0; i<_attrslength; i++){//解析xml节点属性
-                        var attrname=_attrs[i].nodeName;
-                        var attrvalue=_attrs[i].nodeValue;
-                        _itemobj[attrname]=attrvalue;
-                    }
-                }
-                for (var j = 0; j < _childslength; j++) {//解析xml子节点
-                    var _node = _childs[j];
-                    var _fildName = _node.nodeName;
-                    if("#text"==_fildName){break;};
-                    if(_itemobj[_fildName]!=undefined){//如果有重复的节点需要转为数组格式
-                        if(!(_itemobj[_fildName] instanceof Array)){
-                            var a=_itemobj[_fildName];
-                            _itemobj[_fildName]=[a];//如果该节点出现大于一个的情况 把第一个的值存放到数组中
-                        }
-                    }
-                    var _fildValue=getAllAttrs(_node);
-                    try{
-                        _itemobj[_fildName].push(_fildValue);
-                    }catch(e){
-                        _itemobj[_fildName]=_fildValue;
-                        _itemobj["length"]=1;
-                    }
-                }
-            }else{
-                _itemobj=(node.textContent==undefined)?node.text:node.textContent;
+    function Xml2Json(data) {
+        //创建文档对象
+        var parser=new DOMParser();
+        var xmlDoc=parser.parseFromString(data,"text/xml");
+        var obj = {};
+        //提取数据
+        var nodes2 = xmlDoc.getElementsByTagName('block');
+        debugger;
+        var arr2 =  xmlOne(nodes2);
+        obj['block'] = arr2;
+        console.log(obj);
+    }
+
+    function xmlOne(nodes) {
+        debugger;
+        var arr = [];
+        for (var i = 0; i < nodes.length; i++) {
+            var arr1 = {};
+            for(var j= 0;j<nodes[i].children.length;j++){
+                var cname = nodes[i].children[j].nodeName;
+                arr1[cname] = nodes[i].children[j].textContent;
             }
-            return _itemobj;
+            arr.push(arr1);
         };
-        if(nodename){
-            nodenames=nodename.split("/")
-        }
-        for(var i=0;i<nodenames.length;i++){
-            obj=obj.find(nodenames[i]);
-        }
-        $(obj).each(function(key,item){
-            if(itemobj[item.nodeName]!=undefined){
-                if(!(itemobj[item.nodeName] instanceof Array)){
-                    var a=itemobj[item.nodeName];
-                    itemobj[item.nodeName]=[a];
-                }
-                itemobj[item.nodeName].push(getAllAttrs(item));
-            }else{
-                if(nodenames.length>0){
-                    itemobj[item.nodeName]=getAllAttrs(item);
-                }else{
-                    itemobj[item.firstChild.nodeName]=getAllAttrs(item.firstChild);
-                }
-            }
-        });
-        if(nodenames.length>1){
-            itemobj=itemobj[nodenames[nodenames.length-1]];
-        }
-        if(isarray&&!(itemobj instanceof Array)&&itemobj!=undefined){
-            itemobj=[itemobj];
-        }
-        return itemobj;
-    };
+        return arr;
+    }
+
+    function fnXml2json(data){
+        //将xml字符串转为json
+        debugger;
+        var xotree = new XML.ObjTree();
+        // var xmlText = document.getElementById("xml").value;
+        var json = xotree.parseXML(data);
+        //将json对象转为格式化的字符串
+        var dumper = new JKL.Dumper();
+        var jsonText = dumper.dump(json);
+        return jsonText;
+        // document.getElementById("json").value = jsonText;
+    }
