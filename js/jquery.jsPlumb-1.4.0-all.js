@@ -242,7 +242,6 @@
             return jsPlumbUtil.findWithFunction(l, function(_v) { return _v == v; });	
         },
         removeWithFunction : function(a, f) {
-            debugger;
             var idx = jsPlumbUtil.findWithFunction(a, f);
             if (idx > -1) a.splice(idx, 1);
             return idx != -1;
@@ -2284,6 +2283,7 @@
 
 		// helpers for select/selectEndpoints
 		var _setOperation = function(list, func, args, selector) {
+		    // debugger;
 				for (var i = 0, j = list.length; i < j; i++) {
 					list[i][func].apply(list[i], args);
 				}	
@@ -2403,6 +2403,7 @@
 		};
 		
 		var	_makeConnectionSelectHandler = function(list) {
+		    // debugger;
 			var common = _makeCommonSelectHandler(list, _makeConnectionSelectHandler);
 			return jsPlumb.CurrentLibrary.extend(common, {
 				// setters									
@@ -5066,6 +5067,7 @@
 
         // is this a connection source? we make it draggable and have the
         // drag listener maintain a connection with a floating endpoint.
+        debugger;
         if (jpcl.isDragSupported(_element)) {
             var placeholderInfo = { id:null, element:null },
                 jpc = null,
@@ -5225,7 +5227,9 @@
             dragOptions[dragEvent] = _jsPlumb.wrap(dragOptions[dragEvent], _dragHandler.drag);
             dragOptions[stopEvent] = _jsPlumb.wrap(dragOptions[stopEvent],
                 function() {
-                    var originalEvent = jpcl.getDropEvent(arguments);					
+                    var originalEvent = jpcl.getDropEvent(arguments);
+                    // 未完待续
+                    debugger;
                     _ju.removeWithFunction(params.endpointsByElement[placeholderInfo.id], function(e) {
                         return e.id == floatingEndpoint.id;
                     });
@@ -5530,7 +5534,6 @@
             _newConnection = params.newConnection,
             _newEndpoint = params.newEndpoint,
             connector = null;
-        
         self.idPrefix = "_jsplumb_c_";
         self.defaultLabelLocation = 0.5;
         self.defaultOverlayKeys = ["Overlays", "ConnectionOverlays"];
@@ -5616,6 +5619,7 @@
             };
         };
         var superAt = this.applyType;
+        debugger;
         this.applyType = function(t, doNotRepaint) {
             // 未完待续，找到setConnect是否有type的值传入
             debugger;
@@ -5652,7 +5656,7 @@
                 
         this.setConnector = function(connectorSpec, doNotRepaint) {
             // 创建连接
-            debugger;
+            // debugger;
             if (connector != null) _ju.removeElements(connector.getDisplayElements());
             var connectorArgs = { 
                 _jsPlumb:self._jsPlumb, 
@@ -5707,12 +5711,17 @@
         // will have that Connection in it. listeners for the jsPlumbConnection event can look for that
         // member and take action if they need to.
         self.previousConnection = params.previousConnection;
-        debugger;
         this.sourceId = _att(this.source, "id");
+        // 未完待续
         this.targetId = _att(this.target, "id");
-        console.log(this.source);
-        console.log(this.source.attr("data-mode"));
-        this.scope = params.scope; // scope may have been passed in to the connect call. if it wasn't, we will pull it from the source endpoint, after having initialised the endpoints.			
+        console.clear();
+        console.log("anchors: <br/>");
+        console.log(params["anchors"]);
+        // console.log(params["anchors"][0].type);
+        if(params["anchors"][0].type){
+            this.sourcePos = params["anchors"][0].type;
+        }
+        this.scope = params.scope; // scope may have been passed in to the connect call. if it wasn't, we will pull it from the source endpoint, after having initialised the endpoints.
         this.endpoints = [];
         this.endpointStyles = [];
         // wrapped the main function to return null if no input given. this lets us cascade defaults properly.
@@ -5720,6 +5729,7 @@
             return (anchorParams) ? _jsPlumb.makeAnchor(anchorParams, elementId, _jsPlumb) : null;
         },
         prepareEndpoint = function(existing, index, params, element, elementId, connectorPaintStyle, connectorHoverPaintStyle) {
+            debugger;
             var e;
             if (existing) {
                 self.endpoints[index] = existing;
@@ -5776,7 +5786,7 @@
             }
             return e;
         };					
-
+        debugger;
         var eS = prepareEndpoint(params.sourceEndpoint, 0, params, self.source,
                                  self.sourceId, params.paintStyle, params.hoverPaintStyle);			
         if (eS) _ju.addToList(params.endpointsByElement, this.sourceId, eS);						
@@ -5798,7 +5808,7 @@
                     
         // TODO these could surely be refactored into some method that tries them one at a time until something exists
         //
-        // debugger;
+        debugger;
         self.setConnector(this.endpoints[0].connector || 
                           this.endpoints[1].connector || 
                           params.connector || 
@@ -5973,7 +5983,7 @@
                         tAnchorP = tE.anchor.getCurrentLocation(tE);                                
                         
                     connector.resetBounds();
-
+                    debugger;
                     connector.compute({
                         sourcePos:sAnchorP,
                         targetPos:tAnchorP, 
