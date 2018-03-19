@@ -242,6 +242,7 @@
             return jsPlumbUtil.findWithFunction(l, function(_v) { return _v == v; });	
         },
         removeWithFunction : function(a, f) {
+            debugger;
             var idx = jsPlumbUtil.findWithFunction(a, f);
             if (idx > -1) a.splice(idx, 1);
             return idx != -1;
@@ -1585,6 +1586,7 @@
 		},
 		
 		_newConnection = function(params) {
+		    // debugger;
 			var connectionFunc = _currentInstance.Defaults.ConnectionType || _currentInstance.getDefaultConnectionType(),
 			    endpointFunc = _currentInstance.Defaults.EndpointType || jsPlumb.Endpoint,
 			    parent = jsPlumb.CurrentLibrary.getParent;
@@ -1620,6 +1622,7 @@
             params = params || {};
 			// add to list of connections (by scope).
             if (!jpc.suspendedEndpoint)
+                // 增加
 			    _addToList(connectionsByScope, jpc.scope, jpc);					
 			
             // always inform the anchor manager
@@ -1676,9 +1679,12 @@
 			factory method to prepare a new endpoint.  this should always be used instead of creating Endpoints
 			manually, since this method attaches event listeners and an id.
 		*/
+		// 加入新节点
 		_newEndpoint = function(params) {
 				var endpointFunc = _currentInstance.Defaults.EndpointType || jsPlumb.Endpoint;
-				var _p = jsPlumb.extend({}, params);				
+				var _p = jsPlumb.extend({}, params);
+				console.clear();
+				console.log(_p);
 				_p.parent = _getParentFromParams(_p);
 				_p["_jsPlumb"] = _currentInstance;
                 _p.newConnection = _newConnection;
@@ -1690,6 +1696,7 @@
                 _p.floatingConnections = floatingConnections;
                 _p.getParentFromParams = _getParentFromParams;
                 _p.connectionsByScope = connectionsByScope;
+                //debugger;
 				var ep = new endpointFunc(_p);
 				ep.id = "ep_" + _idstamp();
 				_eventFireProxy("click", "endpointClick", ep);
@@ -1959,8 +1966,9 @@
 		this.addClass = function(el, clazz) { return jsPlumb.CurrentLibrary.addClass(el, clazz); };		
 		this.removeClass = function(el, clazz) { return jsPlumb.CurrentLibrary.removeClass(el, clazz); };		
 		this.hasClass = function(el, clazz) { return jsPlumb.CurrentLibrary.hasClass(el, clazz); };
-				
+		//		el = id ; params = 点；reference = 样式
 		this.addEndpoint = function(el, params, referenceParams) {
+		    debugger;
 			referenceParams = referenceParams || {};
 			var p = jsPlumb.extend({}, referenceParams);
 			jsPlumb.extend(p, params);
@@ -1975,15 +1983,20 @@
 				var _el = _gel(inputs[i]), id = _getId(_el);
 				p.source = _el;
                 _updateOffset({ elId : id, timestamp:_suspendedAt });
+                //debugger;
 				var e = _newEndpoint(p);
+                debugger;
 				if (p.parentAnchor) e.parentAnchor = p.parentAnchor;
 				_addToList(endpointsByElement, id, e);
 				var myOffset = offsets[id], myWH = sizes[id];
 				var anchorLoc = e.anchor.compute( { xy : [ myOffset.left, myOffset.top ], wh : myWH, element : e, timestamp:_suspendedAt });
 				var endpointPaintParams = { anchorLoc : anchorLoc, timestamp:_suspendedAt };
 				if (_suspendDrawing) endpointPaintParams.recalc = false;
-				e.paint(endpointPaintParams);
+				// 绘制
+                e.paint(endpointPaintParams);
 				results.push(e);
+				// console.log(e);
+				e.endpoint.canvas.setAttribute("data-mode",params.anchors);
 				//if (!jsPlumbAdapter.headless)
 					//_currentInstance.dragManager.endpointAdded(_el);
 			}
@@ -2338,8 +2351,10 @@
 				} else results.push(obj);
 			};
 			for ( var i in connectionsByScope) {
+			    debugger;
 				if (filterList(scopes, i)) {
 					for ( var j = 0, jj = connectionsByScope[i].length; j < jj; j++) {
+					    debugger;
 						var c = connectionsByScope[i][j];
 						console.log(c)
 						if (filterList(sources, c.sourceId) && filterList(targets, c.targetId))
@@ -2959,7 +2974,7 @@
 					});
 					// when the user presses the mouse, add an Endpoint, if we are enabled.
 					var mouseDownListener = function(e) {
-					    debugger;
+					    // //debugger;
 						// if disabled, return.
                         
 						if (!_sourcesEnabled[idToRegisterAgainst]) return;
@@ -4311,6 +4326,7 @@
     
 // -------- basic anchors ------------------    
     var _curryAnchor = function(x, y, ox, oy, type, fnInit) {
+        // //debugger;
         jsPlumb.Anchors[type] = function(params) {
             var a = params.jsPlumbInstance.makeAnchor([ x, y, ox, oy, 0, 0 ], params.elementId, params.jsPlumbInstance);
             a.type = type;
@@ -4513,7 +4529,14 @@
         var stopped = false;
         return {
             drag : function() {
-                console.log('drag');
+                debugger;
+                // console.log('drag');
+                // var did = this.getAttribute("elid");
+                // var dv= document.getElementById(did);
+                // var dvleft = dv.style.left;
+                // var didleft = this.style.left;
+                // var divPosition = didleft > dvleft ?"RightMiddle":"LeftMiddle";
+                // this.setAttribute("data-mode",divPosition);
                 if (stopped) {
                     stopped = false;
                     return true;
@@ -4521,20 +4544,20 @@
                 var _ui = jsPlumb.CurrentLibrary.getUIPosition(arguments, _jsPlumb.getZoom());
         
                 if (placeholder.element) {
-                    debugger;
+                    // //debugger;
                     jsPlumb.CurrentLibrary.setOffset(placeholder.element, _ui);                    
+                    jsPlumb.CurrentLibrary.setOffset(placeholder.element, _ui);
                     _jsPlumb.repaint(placeholder.element, _ui);
                 }
             },
             stopDrag : function() {
                 stopped = true;
-            }
+            },
         };
     };
-        
+    //    在拖动点时，实时产生一个div来嵌套path的svg
     // creates a placeholder div for dragging purposes, adds it to the DOM, and pre-computes its offset.    
     var _makeDraggablePlaceholder = function(placeholder, parent, _jsPlumb) {
-        // debugger;
         var n = document.createElement("div");
         n.style.position = "absolute";
         var placeholderDragElement = jsPlumb.CurrentLibrary.getElementObject(n);
@@ -4558,7 +4581,8 @@
                 "connector", "connectionType", "connectorClass", "connectorHoverClass" ];
 
     jsPlumb.Endpoint = function(params) {
-        var self = this, 
+        //debugger;
+        var self = this,
             _jsPlumb = params["_jsPlumb"],
             jpcl = jsPlumb.CurrentLibrary,
             _att = jpcl.getAttribute,
@@ -4569,7 +4593,8 @@
             _newEndpoint = params.newEndpoint,
             _finaliseConnection = params.finaliseConnection,
             _fireDetachEvent = params.fireDetachEvent,
-            floatingConnections = params.floatingConnections;
+            floatingConnections = params.floatingConnections,
+            _divPosition = params["anchors"];
         
         self.idPrefix = "_jsplumb_e_";			
         self.defaultLabelLocation = [ 0.5, 0.5 ];
@@ -4658,12 +4683,14 @@
         this.setConnectionsDirected = function(b) { _connectionsDirected = b; };                        
 
         var _currentAnchorClass = "",
+            // 更新外壳的class
             _updateAnchorClass = function() {
                 jpcl.removeClass(_element, _jsPlumb.endpointAnchorClassPrefix + "_" + _currentAnchorClass);
                 self.removeClass(_jsPlumb.endpointAnchorClassPrefix + "_" + _currentAnchorClass);
                 _currentAnchorClass = self.anchor.getCssClass();
                 self.addClass(_jsPlumb.endpointAnchorClassPrefix + "_" + _currentAnchorClass);
                 jpcl.addClass(_element, _jsPlumb.endpointAnchorClassPrefix + "_" + _currentAnchorClass);
+                console.log(jpcl);
             };
 
         this.setAnchor = function(anchorParams, doNotRepaint) {
@@ -4690,6 +4717,7 @@
 
         var _endpoint = null, originalEndpoint = null;
         this.setEndpoint = function(ep) {
+            //debugger;
             var endpointArgs = {
                 _jsPlumb:self._jsPlumb,
                 cssClass:params.cssClass,
@@ -4723,7 +4751,7 @@
             self.endpoint = _endpoint;
             self.type = self.endpoint.type;
         };
-         
+        // 调用svg.Dot
         this.setEndpoint(params.endpoint || _jsPlumb.Defaults.Endpoint || jsPlumb.Defaults.Endpoint || "Dot");							
         originalEndpoint = _endpoint;        
 
@@ -4765,7 +4793,8 @@
             return self.connections;
         };
                     
-        this.canvas = this.endpoint.canvas;		
+        this.canvas = this.endpoint.canvas;
+        //debugger;
         // add anchor class (need to do this on construction because we set anchor first)
         self.addClass(_jsPlumb.endpointAnchorClassPrefix + "_" + _currentAnchorClass);	
         jpcl.addClass(_element, _jsPlumb.endpointAnchorClassPrefix + "_" + _currentAnchorClass);
@@ -5017,7 +5046,8 @@
                     }
                                         
                     _endpoint.compute(ap, self.anchor.getOrientation(self), self.paintStyleInUse, connectorPaintStyle || self.paintStyleInUse);
-                    _endpoint.paint(self.paintStyleInUse, self.anchor);					
+                    // //debugger; //2
+                    _endpoint.paint(self.paintStyleInUse, self.anchor);
                     self.timestamp = timestamp;
 
                     // paint overlays
@@ -5098,10 +5128,12 @@
                 // store the id of the dragging div and the source element. the drop function will pick these up.					
                 jpcl.setAttribute(canvasElement, "dragId", placeholderInfo.id);
                 jpcl.setAttribute(canvasElement, "elId", _elementId);
+                // debugger;
                 floatingEndpoint = _makeFloatingEndpoint(self.getPaintStyle(), self.anchor, _endpoint, self.canvas, placeholderInfo.element, _jsPlumb, _newEndpoint);
                 self.canvas.style.visibility = "hidden";            
                 
-                if (jpc == null) {                                                                                                                                                         
+                if (jpc == null) {
+                    // debugger;
                     self.anchor.locked = true;
                     self.setHover(false, false);                        
                     // create a connection. one end is this endpoint, the other is a floating endpoint.                    
@@ -5125,6 +5157,7 @@
                     _jsPlumb.fire("connectionDrag", jpc);
 
                 } else {
+                    debugger;
                     existingJpc = true;
                     jpc.setHover(false);						
                     // if existing connection, allow to be dropped back on the source endpoint (issue 51).
@@ -5143,6 +5176,7 @@
                     jpcl.setDragScope(canvasElement, dropScope);
             
                     // now we replace ourselves with the temporary div we created above:
+                    debugger;
                     if (anchorIdx == 0) {
                         existingJpcParams = [ jpc.source, jpc.sourceId, i, dragScope ];
                         jpc.source = placeholderInfo.element;
@@ -5208,6 +5242,7 @@
                         if (existingJpc && jpc.suspendedEndpoint) {
                             // fix for issue35, thanks Sylvain Gizard: when firing the detach event make sure the
                             // floating endpoint has been replaced.
+                            debugger;
                             if (idx == 0) {
                                 jpc.source = existingJpcParams[0];
                                 jpc.sourceId = existingJpcParams[1];
@@ -5230,6 +5265,7 @@
                         } else {
                             // TODO this looks suspiciously kind of like an Endpoint.detach call too.
                             // i wonder if this one should post an event though.  maybe this is good like this.
+                            // 连接到浮动点时，可以取消这段链接
                             _ju.removeElements(jpc.getConnector().getDisplayElements(), self.parent);
                             self.detachFromConnection(jpc);								
                         }																
@@ -5263,6 +5299,7 @@
         // pulled this out into a function so we can reuse it for the inPlaceCopy canvas; you can now drop detached connections
         // back onto the endpoint you detached it from.
         var _initDropTarget = function(canvas, forceInit, isTransient, endpoint) {
+            // debugger;
             if ((params.isTarget || forceInit) && jpcl.isDropSupported(_element)) {
                 var dropOptions = params.dropOptions || _jsPlumb.Defaults.DropOptions || jsPlumb.Defaults.DropOptions;
                 dropOptions = jsPlumb.extend( {}, dropOptions);
@@ -5482,6 +5519,7 @@
 ;(function() {
     
     jsPlumb.Connection = function(params) {
+        // params.type:"RightMiddle"
         var self = this, visible = true, _internalHover, _superClassHover,
             _jsPlumb = params["_jsPlumb"],
             jpcl = jsPlumb.CurrentLibrary,
@@ -5579,6 +5617,8 @@
         };
         var superAt = this.applyType;
         this.applyType = function(t, doNotRepaint) {
+            // 未完待续，找到setConnect是否有type的值传入
+            debugger;
             superAt(t, doNotRepaint);
             if (t.detachable != null) self.setDetachable(t.detachable);
             if (t.reattach != null) self.setReattach(t.reattach);
@@ -5611,6 +5651,8 @@
         };                        
                 
         this.setConnector = function(connectorSpec, doNotRepaint) {
+            // 创建连接
+            debugger;
             if (connector != null) _ju.removeElements(connector.getDisplayElements());
             var connectorArgs = { 
                 _jsPlumb:self._jsPlumb, 
@@ -5655,7 +5697,7 @@
                     
         this.source = _gel(params.source);
         this.target = _gel(params.target);
-        // sourceEndpoint and targetEndpoint override source/target, if they are present. but 
+        // sourceEndpoint and targetEndpoint override source/target, if they are present. but
         // source is not overridden if the Endpoint has declared it is not the final target of a connection;
         // instead we use the source that the Endpoint declares will be the final source element.
         if (params.sourceEndpoint) this.source = params.sourceEndpoint.endpointWillMoveTo || params.sourceEndpoint.getElement();			
@@ -5665,9 +5707,11 @@
         // will have that Connection in it. listeners for the jsPlumbConnection event can look for that
         // member and take action if they need to.
         self.previousConnection = params.previousConnection;
-                    
+        debugger;
         this.sourceId = _att(this.source, "id");
         this.targetId = _att(this.target, "id");
+        console.log(this.source);
+        console.log(this.source.attr("data-mode"));
         this.scope = params.scope; // scope may have been passed in to the connect call. if it wasn't, we will pull it from the source endpoint, after having initialised the endpoints.			
         this.endpoints = [];
         this.endpointStyles = [];
@@ -5753,13 +5797,16 @@
             self.endpointsToDeleteOnDetach = params.endpointsToDeleteOnDetach;
                     
         // TODO these could surely be refactored into some method that tries them one at a time until something exists
-        // 
+        //
+        // debugger;
         self.setConnector(this.endpoints[0].connector || 
                           this.endpoints[1].connector || 
                           params.connector || 
                           _jsPlumb.Defaults.Connector || 
                           jsPlumb.Defaults.Connector, true);
+
         if (params.path)
+            // //debugger;
             connector.setPath(params.path);
         
         this.setPaintStyle(this.endpoints[0].connectorStyle || 
@@ -7186,6 +7233,7 @@
 		var div;
 		
 		var makeDiv = function() {
+		    //debugger;
 			div = params.create(params.component);
 			div = jpcl.getDOMElement(div);
 			div.style["position"] 	= 	"absolute";    	
@@ -7931,6 +7979,7 @@
         };	
 
         this.getPath = function() {
+            //debugger;
             var _last = null, _lastAxis = null, s = [], segs = userSuppliedSegments || segments;
             for (var i = 0; i < segs.length; i++) {
                 var seg = segs[i], axis = seg[4], axisIndex = (axis == "v" ? 3 : 2);
@@ -8269,10 +8318,11 @@
 // ******************************* vml segments *****************************************************	
 		
 	jsPlumb.Segments.vml = {
-		SegmentRenderer : {		
+		SegmentRenderer : {
 			getPath : function(segment) {
-				return ({
-					"Straight":function(segment) {
+                //debugger;
+                return ({
+                    "Straight":function(segment) {
 						var d = segment.params;
 						return "m" + _conv(d.x1) + "," + _conv(d.y1) + " l" + _conv(d.x2) + "," + _conv(d.y2) + " e";
 					},
@@ -8360,7 +8410,8 @@
     	var self = this, path = null;
     	self.canvas = null; 
     	self.isAppendedAtTopLevel = true;
-    	var getPath = function(d) {    		
+    	var getPath = function(d) {
+    	    //debugger;
     		return "m " + _conv(d.hxy.x) + "," + _conv(d.hxy.y) +
     		       " l " + _conv(d.tail[0].x) + "," + _conv(d.tail[0].y) + 
     		       " " + _conv(d.cxy.x) + "," + _conv(d.cxy.y) + 
@@ -8477,10 +8528,13 @@
 		svg:"http://www.w3.org/2000/svg",
 		xhtml:"http://www.w3.org/1999/xhtml"
 	},
+     //   设置属性和属性值
 	_attr = function(node, attributes) {
+	    // //debugger; //4
 		for (var i in attributes)
 			node.setAttribute(i, "" + attributes[i]);
-	},	
+	},
+     //   命名空间的名称。元素节点名称
 	_node = function(name, attributes) {
 		var n = document.createElementNS(ns.svg, name);
 		attributes = attributes || {};
@@ -8604,11 +8658,14 @@
 	},
 	_addClass = function(el, clazz) { _classManip(el, true, clazz); },
 	_removeClass = function(el, clazz) { _classManip(el, false, clazz); },
+     //   估计是插入的子节点
 	_appendAtIndex = function(svg, path, idx) {
 		if (svg.childNodes.length > idx) {
 			svg.insertBefore(path, svg.childNodes[idx]);
 		}
-		else svg.appendChild(path);
+		else
+            // //debugger;
+		    svg.appendChild(path);
 	};
 	
 	/**
@@ -8642,20 +8699,23 @@
 				"height":0,
 				"pointer-events":pointerEventsSpec,
 				"position":"absolute"
-			};				
+			};
+		// 配置
 		self.svg = _node("svg", svgParams);
+		//debugger;
 		if (params.useDivWrapper) {
 			self.canvas = document.createElement("div");
 			self.canvas.style["position"] = "absolute";
 			jsPlumb.sizeCanvas(self.canvas,0,0,1,1);
-			self.canvas.className = clazz;
+			self.canvas.className = clazz; //calzz = _jsPlumb_endpoint
 		}
 		else {
 			_attr(self.svg, { "class":clazz });
 			self.canvas = self.svg;
 		}
-			
+		//	生成div盒子，默认位置
 		params._jsPlumb.appendElement(self.canvas, params.originalArgs[0]["parent"]);
+		//给div添加svg子元素
 		if (params.useDivWrapper) self.canvas.appendChild(self.svg);
 		
 		// TODO this displayElement stuff is common between all components, across all
@@ -8669,7 +8729,7 @@
 			displayElements.push(el);
 		};	
 		
-		this.paint = function(style, anchor, extents) {	   			
+		this.paint = function(style, anchor, extents) {
 			if (style != null) {
 				
 				var xy = [ self.x, self.y ], wh = [ self.w, self.h ], p;
@@ -8688,8 +8748,8 @@
 				else
 					p = _pos([ xy[0], xy[1] ]);
                 
-                renderer.paint.apply(this, arguments);		    			    	
-                
+                renderer.paint.apply(this, arguments);
+                // //debugger; //3
 		    	_attr(self.svg, {
 	    			"style":p,
 	    			"width": wh[0],
@@ -8707,12 +8767,13 @@
 	 * Base class for SVG connectors.
 	 */ 
 	var SvgConnector = jsPlumb.ConnectorRenderers.svg = function(params) {
+	    //debugger;
 		var self = this,
 			_super = SvgComponent.apply(this, [ { 
 				cssClass:params["_jsPlumb"].connectorClass, 
 				originalArgs:arguments, 
 				pointerEventsSpec:"none", 
-				_jsPlumb:params["_jsPlumb"] 
+				_jsPlumb:params["_jsPlumb"]
 			} ]);				
 
 		_super.renderer.paint = function(style, anchor, extents) {
@@ -8778,6 +8839,7 @@
 	jsPlumb.Segments.svg = {
 		SegmentRenderer : {		
 			getPath : function(segment) {
+			    //debugger;
 				return ({
 					"Straight":function() {
 						var d = segment.getCoordinates();
@@ -8806,6 +8868,7 @@
 	 * Base class for SVG endpoints.
 	 */
 	var SvgEndpoint = window.SvgEndpoint = function(params) {
+	    //debugger;
 		var self = this,
 			_super = SvgComponent.apply(this, [ {
 				cssClass:params["_jsPlumb"].endpointClass, 
@@ -8823,6 +8886,7 @@
 			}
 			
 			if (self.node == null) {
+                // 给svg内部添加点的语句
 				self.node = self.makeNode(s);
 				self.svg.appendChild(self.node);
 				self.attachListeners(self.node, self);
@@ -8844,6 +8908,7 @@
 	 */
 	jsPlumb.Endpoints.svg.Dot = function() {
 		jsPlumb.Endpoints.Dot.apply(this, arguments);
+		// debugger
 		SvgEndpoint.apply(this, arguments);		
 		this.makeNode = function(style) { 
 			return _node("circle", {
@@ -8912,6 +8977,7 @@
 	    			path = _node("path", {
 	    				"pointer-events":"all"	
 	    			});
+	    			// //debugger;
 	    			params.component.svg.appendChild(path);
 	    			
 	    			self.attachListeners(path, params.component);
@@ -8966,6 +9032,7 @@
         jsPlumb.Overlays.GuideLines.apply(this, arguments);
         this.paint = function(params, containerExtents) {
     		if (path == null) {
+    		    // //debugger;
     			path = _node("path");
     			params.connector.svg.appendChild(path);
     			self.attachListeners(path, params.connector);

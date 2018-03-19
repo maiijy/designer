@@ -803,6 +803,9 @@ $(document).ready(function(){
         return true;
     }
 
+    $("._jsPlumb_endpoint").on("click",function (e) {
+        console.log($(this).sibling(".draggable")[0].id);
+    });
 
 
     function fnJson2xml(data){
