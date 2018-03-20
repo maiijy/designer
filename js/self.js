@@ -312,7 +312,7 @@ $(document).ready(function(){
             // changeValue("#"+trueId);
 
             list=jsPlumb.getAllConnections();//获取所有的连接
-            console.log(list);
+
 
             //元素ID网上加,防止重复
             sessionStorage['idIndex']=sessionStorage['idIndex']+1;
@@ -617,7 +617,13 @@ $(document).ready(function(){
     //序列化全部流程图数据,json格式
     function saveConnection() {
         var obj = {};
+
+        return JSON.stringify(obj);
+    }
+    function save(){
+        var obj = {};
         var connects=[];
+        var blocks=[];
         // console.log(jsPlumb.getAllConnections());
 
         for(var i in list){
@@ -625,16 +631,15 @@ $(document).ready(function(){
                 connects.push({
                     ConnectionId:list[i][j]['id'],
                     PageSourceId:list[i][j]['sourceId'],
-                    PageTargetId:list[i][j]['targetId']
+                    PageTargetId:list[i][j]['targetId'],
+                    ConSourcePos:list[i][j]['sourceIdPos'],
+                    ConTargetPos:list[i][j]['targetIdPos']
                 });
             }
         }
+        console.log(connects);
         obj['connects'] = connects;
-        return JSON.stringify(obj);
-    }
-    function save(){
-        var obj = {};
-        var blocks=[];
+
         $(".droppable .draggable").each(function(idx, elem){
             var elem=$(elem);
             var rareHTML=elem.html();
@@ -697,7 +702,6 @@ $(document).ready(function(){
             });
 
         });
-
        obj['block'] = blocks;
         return JSON.stringify(obj);
     }
@@ -707,6 +711,9 @@ $(document).ready(function(){
     var dataxml1;
     var dataxml2;
     $('#export').on('click',function () {
+        console.clear();
+        console.log("获取的连接:");
+        console.log(list);
        dataJson = save();
         // dataxml1 = fnJson2xml(saveConnection());
         // dataxml2 = fnJson2xml(save());
@@ -726,23 +733,8 @@ $(document).ready(function(){
         if(!unpack){
             return false;
         }
-        var flowConnector={
-            anchors:["RightMiddle","LeftMiddle"],
-            endpoint: ["Dot", { radius: 1 }],  //端点的外形
-            connectorStyle: connectorPaintStyle,//连接线的色彩,大小样式
-            connectorHoverStyle: connectorHoverStyle,
-            paintStyle: {
-                strokeStyle: "rgb(0,0,0)",
-                fillStyle: "rgb(0,0,0)",
-                opacity: 0.5,
-                radius: 1,
-                lineWidth: 1
-            },//端点的色彩样式
-            isSource: true,    //是否可以拖动(作为连线出发点)
-            connector: ["Flowchart", { curviness:100 } ],//设置连线为贝塞尔曲线
-            isTarget: true,    //是否可以放置(连线终点)
-            maxConnections: -1,    // 设置连接点最多可以连接几条线
-        };
+        // var anchorPos = [];
+
 
         for(var i=0;i<unpack['block'].length;i++){
             var BlockId=unpack['block'][i]['BlockId'];
@@ -772,21 +764,36 @@ $(document).ready(function(){
                 .css('border-style',borderStyle)
                 .css('border-color',borderColor)
         }
-        debugger;
         for(var i=0;i<unpack['connects'].length;i++) {
             var ConnectionId = unpack['connects'][i]['ConnectionId'];
             var PageSourceId = unpack['connects'][i]['PageSourceId'];
             var PageTargetId = unpack['connects'][i]['PageTargetId'];
-
+            debugger;
+            anchorPos = [];
+            anchorPos.push(unpack['connects'][i]['ConSourcePos']);
+            anchorPos.push(unpack['connects'][i]['ConTargetPos']);
+            var flowConnector={
+                anchors:anchorPos,
+                endpoint: ["Dot", { radius: 1 }],  //端点的外形
+                connectorStyle: connectorPaintStyle,//连接线的色彩,大小样式
+                connectorHoverStyle: connectorHoverStyle,
+                paintStyle: {
+                    strokeStyle: "rgb(0,0,0)",
+                    fillStyle: "rgb(0,0,0)",
+                    opacity: 0.5,
+                    radius: 1,
+                    lineWidth: 1
+                },//端点的色彩样式
+                isSource: true,    //是否可以拖动(作为连线出发点)
+                connector: ["Flowchart", { curviness:100 } ],//设置连线为贝塞尔曲线
+                isTarget: true,    //是否可以放置(连线终点)
+                maxConnections: -1,    // 设置连接点最多可以连接几条线
+            };
             //用jsPlumb添加锚点
-            // jsPlumb.addEndpoint(PageSourceId,{anchors: "TopCenter"},hollowCircle);
             jsPlumb.addEndpoint(PageSourceId, {anchors: "RightMiddle"}, hollowCircle);
-            // jsPlumb.addEndpoint(PageSourceId,{anchors: "BottomCenter"},hollowCircle);
             jsPlumb.addEndpoint(PageSourceId, {anchors: "LeftMiddle"}, hollowCircle);
 
-            // jsPlumb.addEndpoint(PageTargetId,{anchors: "TopCenter"},hollowCircle);
             jsPlumb.addEndpoint(PageTargetId, {anchors: "RightMiddle"}, hollowCircle);
-            // jsPlumb.addEndpoint(PageTargetId,{anchors: "BottomCenter"},hollowCircle);
             jsPlumb.addEndpoint(PageTargetId, {anchors: "LeftMiddle"}, hollowCircle);
 
             jsPlumb.draggable(PageSourceId);

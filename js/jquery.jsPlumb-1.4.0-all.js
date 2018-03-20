@@ -709,7 +709,8 @@
 			// connection is confirmed. user can return false to reject connection.
 			var beforeDrop = params.beforeDrop;
 			this.isDropAllowed = function(sourceId, targetId, scope, connection, dropEndpoint) {
-				var r = self._jsPlumb.checkCondition("beforeDrop", { 
+			    // debugger;
+				var r = self._jsPlumb.checkCondition("beforeDrop", {
 					sourceId:sourceId, 
 					targetId:targetId, 
 					scope:scope,
@@ -1621,7 +1622,8 @@
             params = params || {};
 			// add to list of connections (by scope).
             if (!jpc.suspendedEndpoint)
-                // 增加
+                // 增加到备份模型中
+                // debugger;
 			    _addToList(connectionsByScope, jpc.scope, jpc);					
 			
             // always inform the anchor manager
@@ -1695,7 +1697,6 @@
                 _p.floatingConnections = floatingConnections;
                 _p.getParentFromParams = _getParentFromParams;
                 _p.connectionsByScope = connectionsByScope;
-                //debugger;
 				var ep = new endpointFunc(_p);
 				ep.id = "ep_" + _idstamp();
 				_eventFireProxy("click", "endpointClick", ep);
@@ -1967,7 +1968,7 @@
 		this.hasClass = function(el, clazz) { return jsPlumb.CurrentLibrary.hasClass(el, clazz); };
 		//		el = id ; params = 点；reference = 样式
 		this.addEndpoint = function(el, params, referenceParams) {
-		    debugger;
+		    // debugger;
 			referenceParams = referenceParams || {};
 			var p = jsPlumb.extend({}, referenceParams);
 			jsPlumb.extend(p, params);
@@ -1984,7 +1985,7 @@
                 _updateOffset({ elId : id, timestamp:_suspendedAt });
                 //debugger;
 				var e = _newEndpoint(p);
-                debugger;
+                // debugger;
 				if (p.parentAnchor) e.parentAnchor = p.parentAnchor;
 				_addToList(endpointsByElement, id, e);
 				var myOffset = offsets[id], myWH = sizes[id];
@@ -2351,10 +2352,9 @@
 				} else results.push(obj);
 			};
 			for ( var i in connectionsByScope) {
-			    debugger;
+			    // debugger;
 				if (filterList(scopes, i)) {
 					for ( var j = 0, jj = connectionsByScope[i].length; j < jj; j++) {
-					    debugger;
 						var c = connectionsByScope[i][j];
 						console.log(c)
 						if (filterList(sources, c.sourceId) && filterList(targets, c.targetId))
@@ -4530,7 +4530,6 @@
         var stopped = false;
         return {
             drag : function() {
-                debugger;
                 // console.log('drag');
                 // var did = this.getAttribute("elid");
                 // var dv= document.getElementById(did);
@@ -5067,7 +5066,6 @@
 
         // is this a connection source? we make it draggable and have the
         // drag listener maintain a connection with a floating endpoint.
-        debugger;
         if (jpcl.isDragSupported(_element)) {
             var placeholderInfo = { id:null, element:null },
                 jpc = null,
@@ -5159,7 +5157,6 @@
                     _jsPlumb.fire("connectionDrag", jpc);
 
                 } else {
-                    debugger;
                     existingJpc = true;
                     jpc.setHover(false);						
                     // if existing connection, allow to be dropped back on the source endpoint (issue 51).
@@ -5178,7 +5175,7 @@
                     jpcl.setDragScope(canvasElement, dropScope);
             
                     // now we replace ourselves with the temporary div we created above:
-                    debugger;
+                    // debugger;
                     if (anchorIdx == 0) {
                         existingJpcParams = [ jpc.source, jpc.sourceId, i, dragScope ];
                         jpc.source = placeholderInfo.element;
@@ -5229,7 +5226,7 @@
                 function() {
                     var originalEvent = jpcl.getDropEvent(arguments);
                     // 未完待续
-                    debugger;
+                    // debugger;
                     _ju.removeWithFunction(params.endpointsByElement[placeholderInfo.id], function(e) {
                         return e.id == floatingEndpoint.id;
                     });
@@ -5246,7 +5243,6 @@
                         if (existingJpc && jpc.suspendedEndpoint) {
                             // fix for issue35, thanks Sylvain Gizard: when firing the detach event make sure the
                             // floating endpoint has been replaced.
-                            debugger;
                             if (idx == 0) {
                                 jpc.source = existingJpcParams[0];
                                 jpc.sourceId = existingJpcParams[1];
@@ -5275,7 +5271,8 @@
                         }																
                     }
                     
-                    // remove floating endpoint _after_ checking beforeDetach 
+                    // remove floating endpoint _after_ checking beforeDetach
+                    //
                     _ju.removeElements( [ placeholderInfo.element[0], floatingEndpoint.canvas ], _element); // TODO: clean up the connection canvas (if the user aborted)
                     _jsPlumb.dragManager.elementRemoved(floatingEndpoint.elementId);
                     self.canvas.style.visibility = "visible";
@@ -5303,25 +5300,26 @@
         // pulled this out into a function so we can reuse it for the inPlaceCopy canvas; you can now drop detached connections
         // back onto the endpoint you detached it from.
         var _initDropTarget = function(canvas, forceInit, isTransient, endpoint) {
-            // debugger;
             if ((params.isTarget || forceInit) && jpcl.isDropSupported(_element)) {
                 var dropOptions = params.dropOptions || _jsPlumb.Defaults.DropOptions || jsPlumb.Defaults.DropOptions;
                 dropOptions = jsPlumb.extend( {}, dropOptions);
                 dropOptions.scope = dropOptions.scope || self.scope;
+                // self == window.self
                 var dropEvent = jpcl.dragEvents['drop'],
                     overEvent = jpcl.dragEvents['over'],
                     outEvent = jpcl.dragEvents['out'],
                     drop = function() {
-
+                        // debugger;
                         self["removeClass"](_jsPlumb.endpointDropAllowedClass);
                         self["removeClass"](_jsPlumb.endpointDropForbiddenClass);
-                                                    
                         var originalEvent = jpcl.getDropEvent(arguments),
                             draggable = _gel(jpcl.getDragObject(arguments)),
                             id = _att(draggable, "dragId"),
                             elId = _att(draggable, "elId"),						
                             scope = _att(draggable, "originalScope"),
-                            jpc = floatingConnections[id];
+                            jpc = floatingConnections[id],
+                            anchorPosition = self.anchor.type;
+                        console.log(anchorPosition);
                             
                         // if this is a drop back where the connection came from, mark it force rettach and
                         // return; the stop handler will reattach. without firing an event.
@@ -5381,8 +5379,9 @@
                                 var commonFunction = function() {
                                     jpc.floatingAnchorIndex = null;
                                 };	
-                                                                                                
+                                //   保存可用连接
                                 var continueFunction = function() {
+                                    // debugger;
                                     // remove this jpc from the current endpoint
                                     jpc.endpoints[idx].detachFromConnection(jpc);
                                     if (jpc.suspendedEndpoint) jpc.suspendedEndpoint.detachFromConnection(jpc);
@@ -5414,12 +5413,16 @@
 
                                     // finalise will inform the anchor manager and also add to
                                     // connectionsByScope if necessary.
+                                    jpc.targetIdPos = anchorPosition;
+                                    jpc.sourceIdPos = jpc.endpoints[0].anchor.type;
+                                    console.log(jpc);
                                     _finaliseConnection(jpc, null, originalEvent);
                                     
                                     commonFunction();
                                 };
                                 
                                 var dontContinueFunction = function() {
+                                    // debugger;
                                     // otherwise just put it back on the endpoint it was on before the drag.
                                     if (jpc.suspendedEndpoint) {									
                                         jpc.endpoints[idx] = jpc.suspendedEndpoint;
@@ -5448,9 +5451,11 @@
                                 // have a beforeDrop condition (although, secretly, under the hood all Endpoints and 
                                 // the Connection have them, because they are on jsPlumbUIComponent.  shhh!), because
                                 // it only makes sense to have it on a target endpoint.
+                                // debugger;
                                 _doContinue = _doContinue && self.isDropAllowed(jpc.sourceId, jpc.targetId, jpc.scope, jpc, self);
                                                                                                                     
                                 if (_doContinue) {
+                                    // 调用copy可用端点之间的连线
                                     continueFunction();
                                 }
                                 else {
@@ -5619,10 +5624,9 @@
             };
         };
         var superAt = this.applyType;
-        debugger;
         this.applyType = function(t, doNotRepaint) {
             // 未完待续，找到setConnect是否有type的值传入
-            debugger;
+            // debugger;
             superAt(t, doNotRepaint);
             if (t.detachable != null) self.setDetachable(t.detachable);
             if (t.reattach != null) self.setReattach(t.reattach);
@@ -5718,9 +5722,9 @@
         console.log("anchors: <br/>");
         console.log(params["anchors"]);
         // console.log(params["anchors"][0].type);
-        if(params["anchors"][0].type){
-            this.sourcePos = params["anchors"][0].type;
-        }
+        // if(params["anchors"][0].type){
+        //     this.sourcePos = params["anchors"][0].type;
+        // }
         this.scope = params.scope; // scope may have been passed in to the connect call. if it wasn't, we will pull it from the source endpoint, after having initialised the endpoints.
         this.endpoints = [];
         this.endpointStyles = [];
@@ -5729,7 +5733,6 @@
             return (anchorParams) ? _jsPlumb.makeAnchor(anchorParams, elementId, _jsPlumb) : null;
         },
         prepareEndpoint = function(existing, index, params, element, elementId, connectorPaintStyle, connectorHoverPaintStyle) {
-            debugger;
             var e;
             if (existing) {
                 self.endpoints[index] = existing;
@@ -5786,7 +5789,6 @@
             }
             return e;
         };					
-        debugger;
         var eS = prepareEndpoint(params.sourceEndpoint, 0, params, self.source,
                                  self.sourceId, params.paintStyle, params.hoverPaintStyle);			
         if (eS) _ju.addToList(params.endpointsByElement, this.sourceId, eS);						
@@ -5808,8 +5810,7 @@
                     
         // TODO these could surely be refactored into some method that tries them one at a time until something exists
         //
-        debugger;
-        self.setConnector(this.endpoints[0].connector || 
+        self.setConnector(this.endpoints[0].connector ||
                           this.endpoints[1].connector || 
                           params.connector || 
                           _jsPlumb.Defaults.Connector || 
@@ -5983,7 +5984,6 @@
                         tAnchorP = tE.anchor.getCurrentLocation(tE);                                
                         
                     connector.resetBounds();
-                    debugger;
                     connector.compute({
                         sourcePos:sAnchorP,
                         targetPos:tAnchorP, 
