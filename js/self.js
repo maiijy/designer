@@ -104,8 +104,9 @@ function setChartLineType(type){hollowCircle['connector'][0]=type;}
 //*********************************流程图数据操作区域*********************************
 var list=[];//全部的连接点列表
 
-//生成单个流程图数据,用在新建流程图框时使用
+//生成单个流程图部件数据,用在新建流程图框时使用
 //参数ID表示被push进栈的ID
+//    获取当前部件的所有参数、包括连线和部件尺寸大小形状
 function getSingleChartJson(id){
 
     var connects=[];
@@ -155,7 +156,7 @@ function getSingleChartJson(id){
     //线框颜色
     var borderColor=elem.css('border-left-color');
     (borderColor=='') ? borderColor='rgb(136,242,75)':borderColor;
-
+    // 部件所有属性
     blocks.push({
         BlockId:elem.attr('id'),
         BlockContent:resultHTML,
@@ -174,17 +175,52 @@ function getSingleChartJson(id){
     console.log(serliza);
     return serliza;
 }
+    //新增一个部件
+    //参数newChartArea代表新增部件的区域
+    //参数chartID代表新流程图部件的ID,格式为元素名称-index
+    //参数left,top代表新部件的插入位置
+    //参数blockName代表新部件的文本
+    //参数undo表示是否进行撤销操作,如果进行撤销操作则不进行入栈,默认为false
+    function addNewChart(newChartArea,chartID,left,top,blockName,undo){
+        alert("add");
+        undo=(undo=='') ? false:arguments[5];
 
-//删除一个流程框图,若参数undo为true则在进行操作时不进行入栈操作,默认为false
+        var name=chartID.split('-')[0];
+
+        //在div内append元素
+        $(newChartArea).append("<div class=\"draggable "+name+" new-"+name+"\" id=\""+chartID+"\"><img style='width: 100%;height: 100%' src='./img/test.svg'/>"+"</div>");
+        $("#"+chartID).css("left",left).css("top",top).css("position","absolute").css("margin","0px");
+
+        //用jsPlumb添加锚点
+        jsPlumb.addEndpoint(chartID,{anchors: "TopCenter"},hollowCircle);
+        jsPlumb.addEndpoint(chartID,{anchors: "RightMiddle"},hollowCircle);
+        jsPlumb.addEndpoint(chartID,{anchors: "BottomCenter"},hollowCircle);
+        jsPlumb.addEndpoint(chartID,{anchors: "LeftMiddle"},hollowCircle);
+
+        jsPlumb.draggable(chartID);
+        $("#"+chartID).draggable({containment: "parent"});//保证拖动不跨界
+
+        sessionStorage['idIndex']=sessionStorage['idIndex']+1;
+
+        changeValue("#"+chartID);
+
+        if(undo==false){
+            chartOperationStack['add'].push(getSingleChartJson(chartID));
+            chartRareOperationStack.push('add');
+        }
+    }
+//删除一个流程框部件图,若参数undo为true则在进行操作时不进行入栈操作,默认为false
 function deleteChart(id,undo){
     undo=(undo=='') ? false:'';
-    var DOM=$('#'+id);
+    var $DOM=$('#'+id);
     if(undo==false){
+        // 把以删除数据放入栈中以便复原
         chartOperationStack['delete'].push(getSingleChartJson(id));
     }
     jsPlumb.removeAllEndpoints(id);
-    DOM.remove();
+    $DOM.remove();
     if(undo==false){
+        // 记录上一步操作
         chartRareOperationStack.push('delete');
     }
 }
@@ -265,17 +301,19 @@ $(document).ready(function(){
     //***********************************元素拖动控制部分************************************
 
     //允许元素拖动
+    //启用 JQuery的draggable 功能
     $(".list-content .area").children().draggable({
         //revert: "valid",//拖动之后原路返回
-        helper: "clone",//复制自身
-        scope: "dragflag"//标识
+        helper: "clone",//复制自身被拖动
+        scope: "dragflag"//标识 设置元素只允许拖拽到具有相同scope值的droppable元素
     });
 
     $(".droppable").droppable({
-        accept: ".draggable", //只接受来自类.dragable的元素
-        activeClass:"drop-active", //开始拖动时放置区域显示
+        accept: ".draggable", //只接受来自类.draggable的元素
+        activeClass:"drop-active", //开始拖动时放置区域讲添加该类名
         scope: "dragflag",
-        // 右侧拖动元素
+        // 当draggable放置在droppable上时触发
+        //            Event，Object
         drop:function(event,ui){
             sessionStorage['idIndex']=sessionStorage['idIndex']+1;
 
@@ -283,7 +321,7 @@ $(document).ready(function(){
             
             var left=parseInt(ui.offset.left-$(this).offset().left);
             var top=parseInt(ui.offset.top-$(this).offset().top)+4;
-
+            // 保证放置后处于“画布”内
             var domWidth=$(window).width();
             var designWidth=domWidth-$('.chart-right-panel').width() - 50;
 
@@ -296,7 +334,7 @@ $(document).ready(function(){
             var name=ui.draggable[0].id;//返回被拖动元素的ID
             var trueId=name+"-"+sessionStorage['idIndex']+sessionStorage['currentChartAmount'];
 
-            //在div内append元素
+            //在div内append元素 helper-被拖拽的对象
             $(this).append("<div class=\"draggable "+name+" new-"+name+"\" id=\""+trueId+"\">"+$(ui.helper).html()+"</div>");
             $("#"+trueId).css("left",left).css("top",top).css("position","absolute").css("margin","0px");
 
@@ -307,7 +345,7 @@ $(document).ready(function(){
             jsPlumb.addEndpoint(trueId,{anchors: "LeftMiddle"},hollowCircle);
 
             jsPlumb.draggable(trueId);
-            $("#"+trueId).draggable({containment: "parent"});//保证拖动不跨界
+            $("#"+trueId).draggable({containment: "parent"});//保证拖动不跨界,只能在父容器中移动
 
             // changeValue("#"+trueId);
 
@@ -327,77 +365,19 @@ $(document).ready(function(){
             sessionStorage['currentChartAmount']=parseInt(sessionStorage['currentChartAmount'],10)+2;
         }
     });
-
+    // 缩放
     $('.droppable .draggable').resizable({
+        // 调整尺寸显示一个半透明的辅助元素
         ghost: true
     });
 
 
-    $('.droppable').on('dblclick',function(){
-        console.log("db");
-        sessionStorage['currentChartSelected']='none';//置当前选择的流程图框为空
-        $('#B,#I,#U').removeClass('fl-font-style-active');//置当前字体样式选择器为空
-        $('#btn-align-center,#btn-align-left,#btn-align-right,#btn-align-none').removeClass('fl-align-style-active');//置当前对齐方式为空
-    });
-
-    //*****************右侧属性面板内容改变同步到设计区域******************
-
-    ////////预加载
-    jQuery(function($){
-        txtValue=$(".chart-location-form").val();
-        ////////    给txtbox绑定键盘事件
-        $(".chart-location-form").bind("keydown",function(){
-            var currentValue=$(this).val();
-            var currentID=$(this).attr('id');
-            if(currentValue!=txtValue){
-                switch(currentID){
-                    case 'chart-font-display'://字体
-                        setChartDesignFont(currentValue);
-                        break;
-                    case 'chart-font-size-display'://字体大小
-                        setChartDesignFontSize(currentValue*10);
-                        break;
-                    case 'chart-align-display'://字体对齐样式
-                        setChartDesignFontAlign(currentValue);
-                        break;
-                    case 'chart-font-color-display'://字体颜色
-                        setChartDesignFontColor(currentValue);
-                        break;
-                    case 'lo-x-display'://top
-                        setChartDesignTop(currentValue*10);
-                        break;
-                    case 'lo-y-display'://left
-                        setChartDesignLeft(currentValue*10);
-                        break;
-                    case 'chart-width-display'://宽度
-                        setChartDesignWidth(currentValue*10);
-                        break;
-                    case 'chart-height-display'://高度
-                        setChartDesignHeight(currentValue*10);
-                        break;
-                    case 'chart-border-display'://框线style
-                        setChartDesignBorderRadius(currentValue);
-                        break;
-                    case 'chart-fill-border-width-display'://框线粗细
-                        setChartDesignBorderWidthStyle(currentValue);
-                        break;
-                    case 'chart-fill-border-color-display'://框线颜色
-                        setChartDesignBorderColorStyle(currentValue);
-                        break;
-                    case 'chart-font-height-display'://文字高度
-                        setChartDesignLineHeight(currentValue);
-                        break;
-                    case 'chart-font-height-display'://文字间距
-                        setChartDesignLetterSpacing(currentValue);
-                        break;
-                    default:
-                        break;
-                }
-            }
-        });
-    });
-
-    //*****************右侧属性面板内容改变同步到设计区域******************
+    // $('.droppable').on('dblclick',function(){
+    //     console.log("db");
+    //     sessionStorage['currentChartSelected']='none';//置当前选择的流程图框为空
+    //     $('#B,#I,#U').removeClass('fl-font-style-active');//置当前字体样式选择器为空
+    //     $('#btn-align-center,#btn-align-left,#btn-align-right,#btn-align-none').removeClass('fl-align-style-active');//置当前对齐方式为空
+    // });
 
     jsPlumb.bind("mouseenter",function (e,callback) {
         
@@ -456,21 +436,10 @@ $(document).ready(function(){
             var BlockY=chartBlockObj['BlockY'];
             var width=chartBlockObj['BlockWidth'];
             var height=chartBlockObj['BlockHeight'];
-            var font=chartBlockObj['BlockFont'];
-            var fontSize=chartBlockObj['BlockFontSize'];
-            var fontAlign=chartBlockObj['BlockFontAlign'];
-            var fontColor=chartBlockObj['BlockFontColor'];
             var borderRadius=chartBlockObj['BlockBorderRadius'];
             var backgroundColor=chartBlockObj['BlockBackground'];
-            var fillBlurRange=chartBlockObj['BlockFillBlurRange'];
-            var fillBlurColor=chartBlockObj['BlockFillBlurColor'];
             var borderStyle=chartBlockObj['BlockBorderStyle'];
             var borderColor=chartBlockObj['BlockborderColor'];
-            var shadow=chartBlockObj['BlockShadow'];
-            var fontStyle=chartBlockObj['BlockFontStyle'];
-            var fontWeight=chartBlockObj['BlockFontWeight'];
-            var fontUnderline=chartBlockObj['BlockFontUnderline'];
-            var lineHeight=chartBlockObj['BlockLineHeight'];
 
             var blockAttr=chartPastedID.split('-')[0];
 
@@ -485,20 +454,11 @@ $(document).ready(function(){
                     .css("margin","0px")
                     .css("width",width)
                     .css("height",height)
-                    .css('font',font)
-                    .css('font-size',fontSize)
-                    .css('text-align',fontAlign)
-                    .css('color',fontColor)
                     .css('border-radius',borderRadius)
                     .css('background',backgroundColor)
                     .css('box-shadow',boxInsetShadowStyle)
                     .css('border-style',borderStyle)
                     .css('border-color',borderColor)
-                    .css('box-shadow',shadow)
-                    .css('font-style',fontStyle)
-                    .css('font-weight',fontWeight)
-                    .css('font-underline',fontUnderline)
-                    .css('line-height',lineHeight);
             }else{
 
             }
@@ -518,57 +478,8 @@ $(document).ready(function(){
         }
     });
 
-    //点击空白处或者自身隐藏弹出层，下面分别为滑动和淡出效果。
-    $(document).click(function(event){
-        $('.line-select').slideUp('fast');
-        sessionStorage['topLineSelectIsDisplayed']=false;
-        sessionStorage['topAlignSelectIsDisplayed']=false;
-    });
-
-    //设置style
-    function setEnvironmentStyle(styleName){
-        switch(styleName){
-            case 'entertainment':
-                console.log(styleName);
-                $('.droppable').css('background','rgb(173,219,225)');
-                break;
-            case 'enterprises':
-                $('.droppable').css('background','rgb(255,255,255)');
-                break;
-            case 'blue':
-                $('.droppable').css('background','rgb(255,235,190)');
-                break;
-            case 'dark':
-                $('.droppable').css('background','rgb(6,1,0)');
-                break;
-            case 'pink':
-                $('.droppable').css('background','rgb(127,0,185)');
-                break;
-        }
-    }
-
-    //选择相应的style
-    $('.right-style-selector').click(function(){
-        var styleName=$(this).attr('id').split('-')[1];
-        setEnvironmentStyle(styleName);
-    });
-
     //***********************************元素拖动控制部分************************************
 });
-
-
-    $(".draggable").draggable({
-        start:function(){
-            // console.log('start');
-        },
-        drag:function(){
-            // console.log('drag');
-        },
-        stop:function(){
-            // console.log('stop');
-        }
-    });
-
     //删除元素按钮
     // $(".droppable").on("mouseenter",".draggable",function(){
     //     $(this).append("<img src=\"img\/delete.png\" id=\"fuck\" style=\"position:absolute;width:20px;height:16px;\"/>");
