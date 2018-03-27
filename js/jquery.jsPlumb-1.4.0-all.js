@@ -255,6 +255,7 @@
         },
         removeWithFunction : function(a, f) {
             var idx = jsPlumbUtil.findWithFunction(a, f);
+            // 从数组中删除该function
             if (idx > -1) a.splice(idx, 1);
             return idx != -1;
         },
@@ -421,7 +422,7 @@
          register some element as draggable.  right now the drag init stuff is done elsewhere, and it is
          possible that will continue to be the case.
          */
-        // 注册元素为可拖动，、
+        // 注册元素为可拖动，_delements
         this.register = function(el) {
             var jpcl = jsPlumb.CurrentLibrary;
             el = jpcl.getElementObject(el);
@@ -1422,13 +1423,14 @@
              * @param ui UI object from current library's event system. optional.
              * @param timestamp timestamp for this paint cycle. used to speed things up a little by cutting down the amount of offset calculations we do.
              */
-                //keypoint!!!
             _draw = function(element, ui, timestamp, clearEdits) {
 
                 // TODO is it correct to filter by headless at this top level? how would a headless adapter ever repaint?
                 if (!jsPlumbAdapter.headless && !_suspendDrawing) {
+                    debugger;
                     var id = _att(element, "id"),
                         repaintEls = _currentInstance.dragManager.getElementsForDraggable(id);
+                    // repaintEls :
 
                     if (timestamp == null) timestamp = _timestamp();
 
@@ -1472,7 +1474,9 @@
              */
             _initDraggableIfNecessary = function(element, isDraggable, dragOptions) {
                 // TODO move to DragManager?
+                // 配置div元素的drag设置
                 if (!jsPlumbAdapter.headless) {
+                    debugger;
                     var draggable = isDraggable == null ? false : isDraggable, jpcl = jsPlumb.CurrentLibrary;
                     if (draggable) {
                         if (jpcl.isDragSupported(element) && !jpcl.isAlreadyDraggable(element)) {
@@ -1481,7 +1485,7 @@
                             var dragEvent = jpcl.dragEvents["drag"],
                                 stopEvent = jpcl.dragEvents["stop"],
                                 startEvent = jpcl.dragEvents["start"];
-
+                            // 初始化 drag对象的事件
                             options[startEvent] = _wrap(options[startEvent], function() {
                                 _currentInstance.setHoverSuspended(true);
                                 _currentInstance.select({source:element}).addClass(_currentInstance.elementDraggingClass + " " + _currentInstance.sourceElementDraggingClass, true);
@@ -1489,11 +1493,13 @@
                             });
 
                             options[dragEvent] = _wrap(options[dragEvent], function() {
+                                debugger;
                                 var ui = jpcl.getUIPosition(arguments, _currentInstance.getZoom());
                                 _draw(element, ui, null, true);
                                 _addClass(element, "jsPlumb_dragged");
                             });
                             options[stopEvent] = _wrap(options[stopEvent], function() {
+                                debugger;
                                 var ui = jpcl.getUIPosition(arguments, _currentInstance.getZoom());
                                 _draw(element, ui);
                                 _removeClass(element, "jsPlumb_dragged");
@@ -1612,7 +1618,6 @@
             },
 
             _newConnection = function(params) {
-                // debugger;
                 var connectionFunc = _currentInstance.Defaults.ConnectionType || _currentInstance.getDefaultConnectionType(),
                     endpointFunc = _currentInstance.Defaults.EndpointType || jsPlumb.Endpoint,
                     parent = jsPlumb.CurrentLibrary.getParent;
@@ -1643,6 +1648,7 @@
 
             /**
              * adds the connection to the backing model, fires an event if necessary and then redraws
+             * 将连接添加到备份模型，在必要时触发事件，然后重新绘制。
              */
             _finaliseConnection = function(jpc, params, originalEvent) {
                 params = params || {};
@@ -1708,6 +1714,7 @@
              */
                 // 加入新节点
             _newEndpoint = function(params) {
+
                 var endpointFunc = _currentInstance.Defaults.EndpointType || jsPlumb.Endpoint;
                 var _p = jsPlumb.extend({}, params);
                 console.clear();
@@ -1934,7 +1941,7 @@
              * important lifecycle events without imposing itself on the user's
              * drag/drop functionality. TODO: determine whether or not we should
              * support an error handler concept, if one of the functions fails.
-             *
+             * 用来包装各种拖放事件函数——允许jsPlumb被通知重要的生命周期事件，而不影响用户的拖放功能。
              * @param wrappedFunction original function to wrap; may be null.
              * @param newFunction function to wrap the original with.
              * @param returnOnThisValue Optional. Indicates that the wrappedFunction should
@@ -2727,7 +2734,8 @@
 
                 var dropOptions = jsPlumb.extend({}, p.dropOptions || {}),
                     _drop = function() {
-
+                        // 先做connection的端点使用
+                        debugger;
                         var originalEvent = jsPlumb.CurrentLibrary.getDropEvent(arguments),
                             targetCount = _currentInstance.select({target:elid}).length;
 
@@ -2913,6 +2921,7 @@
 
         // see api docs
         this.makeSource = function(el, params, referenceParams) {
+            debugger;
             var p = jsPlumb.extend({}, referenceParams);
             jsPlumb.extend(p, params);
             _setEndpointPaintStylesAndAnchor(p, 0);
@@ -3887,7 +3896,7 @@
         };
         //
         this.redraw = function(elementId, ui, timestamp, offsetToUI, clearEdits) {
-
+            debugger;
             if (!jsPlumbInstance.isSuspendDrawing()) {
                 // get all the endpoints for this element
                 var ep = _amEndpoints[elementId] || [],
@@ -4181,7 +4190,6 @@
      * TODO FloatingAnchor could totally be refactored to extend Anchor just slightly.
      */
     jsPlumb.FloatingAnchor = function(params) {
-
         jsPlumb.Anchor.apply(this, arguments);
 
         // this is the anchor that this floating anchor is referenced to for
@@ -4264,7 +4272,6 @@
      */
     jsPlumb.DynamicAnchor = function(params) {
         jsPlumb.Anchor.apply(this, arguments);
-
         this.isSelective = true;
         this.isDynamic = true;
         var _anchors = [], self = this,
@@ -4391,7 +4398,7 @@
         return a;
     };
 
-// ------- continuous anchors -------------------
+// ------- continuous anchors  连续定位-------------------
 
     var _curryContinuousAnchor = function(type, faces) {
         jsPlumb.Anchors[type] = function(params) {
@@ -4410,9 +4417,10 @@
     _curryContinuousAnchor("ContinuousBottom", ["bottom"]);
     _curryContinuousAnchor("ContinuousRight", ["right"]);
 
-// ------- position assign anchors -------------------
+// ------- position assign anchors 位置分配-------------------
 
     // this anchor type lets you assign the position at connection time.
+    // 在连接时分配位置
     jsPlumb.Anchors["Assign"] = _curryAnchor(0, 0, 0, 0, "Assign", function(anchor, params) {
         // find what to use as the "position finder". the user may have supplied a String which represents
         // the id of a position finder in jsPlumb.AnchorPositionFinders, or the user may have supplied the
@@ -4440,7 +4448,7 @@
     };
 
 // ------- perimeter anchors -------------------
-
+//     周长
     jsPlumb.Anchors["Perimeter"] = function(params) {
         params = params || {};
         var anchorCount = params.anchorCount || 60,
@@ -4508,7 +4516,7 @@
                     ]);
                 },
                 "Path":function(params) {
-
+                    debugger;
                     var points = params.points, p = [], tl = 0;
                     for (var i = 0; i < points.length - 1; i++) {
                         var l = Math.sqrt(Math.pow(points[i][2] - points[i][0]) + Math.pow(points[i][3] - points[i][1]));
@@ -4552,17 +4560,12 @@
 ;(function() {
 
     // create the drag handler for a connection
+    //  拖动的处理器
     var _makeConnectionDragHandler = function(placeholder, _jsPlumb) {
         var stopped = false;
         return {
             drag : function() {
-                // console.log('drag');
-                // var did = this.getAttribute("elid");
-                // var dv= document.getElementById(did);
-                // var dvleft = dv.style.left;
-                // var didleft = this.style.left;
-                // var divPosition = didleft > dvleft ?"RightMiddle":"LeftMiddle";
-                // this.setAttribute("data-mode",divPosition);
+                debugger; // 给端点绑定drag事件
                 if (stopped) {
                     stopped = false;
                     return true;
@@ -4570,7 +4573,6 @@
                 var _ui = jsPlumb.CurrentLibrary.getUIPosition(arguments, _jsPlumb.getZoom());
 
                 if (placeholder.element) {
-                    // //debugger;
                     jsPlumb.CurrentLibrary.setOffset(placeholder.element, _ui);
                     jsPlumb.CurrentLibrary.setOffset(placeholder.element, _ui);
                     _jsPlumb.repaint(placeholder.element, _ui);
@@ -4596,6 +4598,7 @@
     };
 
     // create a floating endpoint (for drag connections)
+    // 创造一个浮动点来记录下鼠标当前位置，实现实时移动
     var _makeFloatingEndpoint = function(paintStyle, referenceAnchor, endpoint, referenceCanvas, sourceElement, _jsPlumb, _newEndpoint) {
         var floatingAnchor = new jsPlumb.FloatingAnchor( { reference : referenceAnchor, referenceCanvas : referenceCanvas, jsPlumbInstance:_jsPlumb });
         //setting the scope here should not be the way to fix that mootools issue.  it should be fixed by not
@@ -4607,7 +4610,6 @@
         "connector", "connectionType", "connectorClass", "connectorHoverClass" ];
 
     jsPlumb.Endpoint = function(params) {
-        //debugger;
         var self = this,
             _jsPlumb = params["_jsPlumb"],
             jpcl = jsPlumb.CurrentLibrary,
@@ -4662,6 +4664,7 @@
         var visible = true, __enabled = !(params.enabled === false);
 
         this.isVisible = function() { return visible; };
+        // 设置为可见的
         this.setVisible = function(v, doNotChangeConnections, doNotNotifyOtherEndpoint) {
             visible = v;
             if (self.canvas) self.canvas.style.display = v ? "block" : "none";
@@ -4713,15 +4716,18 @@
             _updateAnchorClass = function() {
                 jpcl.removeClass(_element, _jsPlumb.endpointAnchorClassPrefix + "_" + _currentAnchorClass);
                 self.removeClass(_jsPlumb.endpointAnchorClassPrefix + "_" + _currentAnchorClass);
+                console.log("old:"+_jsPlumb.endpointAnchorClassPrefix + "_" + _currentAnchorClass);
                 _currentAnchorClass = self.anchor.getCssClass();
                 self.addClass(_jsPlumb.endpointAnchorClassPrefix + "_" + _currentAnchorClass);
                 jpcl.addClass(_element, _jsPlumb.endpointAnchorClassPrefix + "_" + _currentAnchorClass);
-                console.log(jpcl);
-            };
+                console.log("new:"+_jsPlumb.endpointAnchorClassPrefix + "_" + _currentAnchorClass);
 
+            };
+        // 设置一个锚点
         this.setAnchor = function(anchorParams, doNotRepaint) {
             self.anchor = _jsPlumb.makeAnchor(anchorParams, _elementId, _jsPlumb);
             _updateAnchorClass();
+            // 锚点绑定了anchorChangend事件，来更新锚点的class
             self.anchor.bind("anchorChanged", function(currentAnchor) {
                 self.fire("anchorChanged", {endpoint:self, anchor:currentAnchor});
                 _updateAnchorClass();
@@ -4743,7 +4749,6 @@
 
         var _endpoint = null, originalEndpoint = null;
         this.setEndpoint = function(ep) {
-            //debugger;
             var endpointArgs = {
                 _jsPlumb:self._jsPlumb,
                 cssClass:params.cssClass,
@@ -4767,6 +4772,7 @@
             // and the clone is left in its place while the original one goes off on a magical journey.
             // the copy is to get around a closure problem, in which endpointArgs ends up getting shared by
             // the whole world.
+            // 每个端点都需要一个copy函数，当开始drag的时候，进行复制，原端点不动
             var argsForClone = jsPlumb.extend({}, endpointArgs);
             _endpoint.clone = function() {
                 var o = new Object();
@@ -4788,6 +4794,7 @@
             _sh.apply(self, arguments);
         };
         // endpoint delegates to first connection for hover, if there is one.
+        // 鼠标悬停就连接到第一个连接
         var internalHover = function(state) {
             if (self.connections.length > 0)
                 self.connections[0].setHover(state, false);
@@ -4796,6 +4803,7 @@
         };
 
         // bind listeners from endpoint to self, with the internal hover function defined above.
+        // 将侦听器从端点绑定到self，使用上面定义的内部悬停函数
         self.bindListeners(self.endpoint, self, internalHover);
 
         this.setPaintStyle(params.paintStyle ||
@@ -4820,7 +4828,6 @@
         };
 
         this.canvas = this.endpoint.canvas;
-        //debugger;
         // add anchor class (need to do this on construction because we set anchor first)
         self.addClass(_jsPlumb.endpointAnchorClassPrefix + "_" + _currentAnchorClass);
         jpcl.addClass(_element, _jsPlumb.endpointAnchorClassPrefix + "_" + _currentAnchorClass);
@@ -4854,6 +4861,7 @@
             if (idx >= 0) {
                 // 1. does the connection have a before detach (note this also checks jsPlumb's bound
                 // detach handlers; but then Endpoint's check will, too, hmm.)
+                // 分离之前对端点的一个检查机会
                 if (forceDetach || connection._forceDetach || connection.isDetachable() || connection.isDetachAllowed(connection)) {
                     // get the target endpoint
                     var t = connection.endpoints[0] == self ? connection.endpoints[1] : connection.endpoints[0];
@@ -4867,6 +4875,7 @@
                             // likely if we got to this bit of code because it is set by the methods that
                             // create their own endpoints, like .connect or .makeTarget. the user is
                             // not likely to have interacted with those endpoints.
+                            // 检查连接，看看是否要删除与之关联的端点。
                             if (connection.endpointsToDeleteOnDetach){
                                 for (var i = 0; i < connection.endpointsToDeleteOnDetach.length; i++) {
                                     var cde = connection.endpointsToDeleteOnDetach[i];
@@ -4998,6 +5007,7 @@
 
         /**
          * returns a connection from the pool; used when dragging starts.  just gets the head of the array if it can.
+         * 当拖动开始时，返回数组头部
          */
         this.connectorSelector = function() {
             var candidate = self.connections[0];
@@ -5028,6 +5038,10 @@
 
         // a helper function that tries to find a connection to the given element, and returns it if so. if elementWithPrecedence is null,
         // or no connection to it is found, we return the first connection in our list.
+        /**
+         * 它试图找到与给定元素的连接，并返回它。如果elementWithPrecedence为空,
+         * 或没有找到连接，我们返回列表中的第一个连接。
+         */
         var findConnectionToUseForDynamicAnchor = function(elementWithPrecedence) {
             var idx = 0;
             if (elementWithPrecedence != null) {
@@ -5041,7 +5055,7 @@
 
             return self.connections[idx];
         };
-
+        // jsPlumb.Endpoinr的paint
         this.paint = function(params) {
             params = params || {};
             var timestamp = params.timestamp, recalc = !(params.recalc === false);
@@ -5092,21 +5106,26 @@
 
         // is this a connection source? we make it draggable and have the
         // drag listener maintain a connection with a floating endpoint.
+        // 拖动j监听器保持与浮动端点的连接
+        // if判断是否能启动draggable事件
         if (jpcl.isDragSupported(_element)) {
             var placeholderInfo = { id:null, element:null },
                 jpc = null,
                 existingJpc = false,
                 existingJpcParams = null,
                 _dragHandler = _makeConnectionDragHandler(placeholderInfo, _jsPlumb);
+            // 拖动处理器设置
 
             var start = function() {
                 // drag might have started on an endpoint that is not actually a source, but which has
                 // one or more connections.
+                // 选择出连接对象
                 jpc = self.connectorSelector();
                 var _continue = true;
                 // if not enabled, return
                 if (!self.isEnabled()) _continue = false;
                 // if no connection and we're not a source, return.
+                // 要做一个判断，连接的开始点是否是端点
                 if (jpc == null && !params.isSource) _continue = false;
                 // otherwise if we're full and not allowed to drag, also return false.
                 if (params.isSource && self.isFull() && !dragAllowedWhenFull) _continue = false;
@@ -5129,16 +5148,17 @@
                 // if we're not full but there was a connection, make it null. we'll create a new one.
                 if (jpc && !self.isFull() && params.isSource) jpc = null;
 
-                _jsPlumb.updateOffset( { elId : _elementId });
-                inPlaceCopy = self.makeInPlaceCopy();
+                _jsPlumb.updateOffset( { elId : _elementId }); // 根据id来更新位置
+                inPlaceCopy = self.makeInPlaceCopy(); //  创造一个复制端点的函数
                 inPlaceCopy.referenceEndpoint = self;
-                inPlaceCopy.paint();
-
+                inPlaceCopy.paint();  // 将复制的点来进行绘制
+                // 这就是产生外面嵌套的div
                 _makeDraggablePlaceholder(placeholderInfo, self.parent, _jsPlumb);
 
                 // set the offset of this div to be where 'inPlaceCopy' is, to start with.
                 // TODO merge this code with the code in both Anchor and FloatingAnchor, because it
                 // does the same stuff.
+                // 来设置div的位置
                 var ipcoel = _gel(inPlaceCopy.canvas),
                     ipco = _getOffset(ipcoel, _jsPlumb),
                     po = _jsPlumb.adjustForParentOffsetAndScroll([ipco.left, ipco.top], inPlaceCopy.canvas),
@@ -5149,20 +5169,23 @@
                 // when using makeSource and a parent, we first draw the source anchor on the source element, then
                 // move it to the parent.  note that this happens after drawing the placeholder for the
                 // first time.
+                // 我们首先在源元素上绘制源锚，然后将其移动到父元素
                 if (self.parentAnchor) self.anchor = _jsPlumb.makeAnchor(self.parentAnchor, self.elementId, _jsPlumb);
 
                 // store the id of the dragging div and the source element. the drop function will pick these up.
+                // 存储拖动div的 id和源点元素，来给drop对象用
                 jpcl.setAttribute(canvasElement, "dragId", placeholderInfo.id);
                 jpcl.setAttribute(canvasElement, "elId", _elementId);
-                // debugger;
+                // 创建一个浮动锚点
                 floatingEndpoint = _makeFloatingEndpoint(self.getPaintStyle(), self.anchor, _endpoint, self.canvas, placeholderInfo.element, _jsPlumb, _newEndpoint);
                 self.canvas.style.visibility = "hidden";
 
-                if (jpc == null) {
-                    // debugger;
+                if (jpc == null) //没有当前连接的对象
+                {
                     self.anchor.locked = true;
                     self.setHover(false, false);
                     // create a connection. one end is this endpoint, the other is a floating endpoint.
+                    // 创建一条连线，一端是起始点，另一端是浮动点
                     jpc = _newConnection({
                         sourceEndpoint : self,
                         targetEndpoint : floatingEndpoint,
@@ -5186,22 +5209,26 @@
                     existingJpc = true;
                     jpc.setHover(false);
                     // if existing connection, allow to be dropped back on the source endpoint (issue 51).
+                    // 允许连接回到源端点
                     _initDropTarget(ipcoel, false, true);
                     // new anchor idx
                     var anchorIdx = jpc.endpoints[0].id == self.id ? 0 : 1;
-                    jpc.floatingAnchorIndex = anchorIdx;					// save our anchor index as the connection's floating index.
-                    self.detachFromConnection(jpc);							// detach from the connection while dragging is occurring.
+                    jpc.floatingAnchorIndex = anchorIdx;
+                    // save our anchor index as the connection's floating index.
+                    self.detachFromConnection(jpc);
+                    // detach from the connection while dragging is occurring.
 
                     // store the original scope (issue 57)
                     var dragScope = jsPlumb.CurrentLibrary.getDragScope(canvasElement);
                     jpcl.setAttribute(canvasElement, "originalScope", dragScope);
                     // now we want to get this endpoint's DROP scope, and set it for now: we can only be dropped on drop zones
                     // that have our drop scope (issue 57).
+                    // 给 drag 对象设置 drop对象的scope
                     var dropScope = jpcl.getDropScope(canvasElement);
                     jpcl.setDragScope(canvasElement, dropScope);
 
                     // now we replace ourselves with the temporary div we created above:
-                    // debugger;
+                    // 用上面的div替换自己
                     if (anchorIdx == 0) {
                         existingJpcParams = [ jpc.source, jpc.sourceId, i, dragScope ];
                         jpc.source = placeholderInfo.element;
@@ -5213,6 +5240,7 @@
                     }
 
                     // lock the other endpoint; if it is dynamic it will not move while the drag is occurring.
+                    // 有drag事件发生的时候，其他点不能drag
                     jpc.endpoints[anchorIdx == 0 ? 1 : 0].anchor.locked = true;
                     // store the original endpoint and assign the new floating endpoint for the drag.
                     jpc.suspendedEndpoint = jpc.endpoints[anchorIdx];
@@ -5227,16 +5255,18 @@
 
                 }
                 // register it and register connection on it.
+                // 注册当前endpoint引发的浮动锚点对象和connection对象
                 floatingConnections[placeholderInfo.id] = jpc;
                 _jsPlumb.anchorManager.addFloatingConnection(placeholderInfo.id, jpc);
                 floatingEndpoint.addConnection(jpc);
                 // only register for the target endpoint; we will not be dragging the source at any time
                 // before this connection is either discarded or made into a permanent connection.
+                // 仅为目标端点注册;在此连接被丢弃或成为永久连接之前，我们不会在任何时候拖拽源。
                 _ju.addToList(params.endpointsByElement, placeholderInfo.id, floatingEndpoint);
                 // tell jsplumb about it
                 _jsPlumb.currentlyDragging = true;
             };
-
+            // 设置endpoint的drag的配置
             var dragOptions = params.dragOptions || {},
                 defaultOpts = jsPlumb.extend( {}, jpcl.defaultDragOptions),
                 startEvent = jpcl.dragEvents["start"],
@@ -5250,9 +5280,8 @@
             dragOptions[dragEvent] = _jsPlumb.wrap(dragOptions[dragEvent], _dragHandler.drag);
             dragOptions[stopEvent] = _jsPlumb.wrap(dragOptions[stopEvent],
                 function() {
+                debugger;
                     var originalEvent = jpcl.getDropEvent(arguments);
-                    // 未完待续
-                    // debugger;
                     _ju.removeWithFunction(params.endpointsByElement[placeholderInfo.id], function(e) {
                         return e.id == floatingEndpoint.id;
                     });
@@ -5325,6 +5354,7 @@
 
         // pulled this out into a function so we can reuse it for the inPlaceCopy canvas; you can now drop detached connections
         // back onto the endpoint you detached it from.
+        // 可以将分离的连接 返回到原来分离的端点
         var _initDropTarget = function(canvas, forceInit, isTransient, endpoint) {
             if ((params.isTarget || forceInit) && jpcl.isDropSupported(_element)) {
                 var dropOptions = params.dropOptions || _jsPlumb.Defaults.DropOptions || jsPlumb.Defaults.DropOptions;
@@ -5335,7 +5365,6 @@
                     overEvent = jpcl.dragEvents['over'],
                     outEvent = jpcl.dragEvents['out'],
                     drop = function() {
-                        // debugger;
                         self["removeClass"](_jsPlumb.endpointDropAllowedClass);
                         self["removeClass"](_jsPlumb.endpointDropForbiddenClass);
                         var originalEvent = jpcl.getDropEvent(arguments),
@@ -5538,7 +5567,9 @@
             }
         };
 
-        // initialise the endpoint's canvas as a drop target.  this will be ignored if the endpoint is not a target or drag is not supported.
+        // initialise the endpoint's canvas as a drop target.
+        // this will be ignored if the endpoint is not a target or drag is not supported.
+        // 这样的话，把浮动点作为drag对象，把可接受的端点作为drop对象
         _initDropTarget(_gel(self.canvas), true, !(params._transient || self.anchor.isFloating), self);
 
         // finally, set type if it was provided
@@ -5651,8 +5682,6 @@
         };
         var superAt = this.applyType;
         this.applyType = function(t, doNotRepaint) {
-            // 未完待续，找到setConnect是否有type的值传入
-            // debugger;
             superAt(t, doNotRepaint);
             if (t.detachable != null) self.setDetachable(t.detachable);
             if (t.reattach != null) self.setReattach(t.reattach);
@@ -5678,15 +5707,20 @@
 // END HOVER
 
         var makeConnector = function(renderMode, connectorName, connectorArgs) {
+            // 传入参数： 绘制语言，线段类型，点的数据
             var c = new Object();
+            // 此函数创建svg，xx类型的对象,继承自connectors
             jsPlumb.Connectors[connectorName].apply(c, [connectorArgs]);
+            debugger; // 继承
             jsPlumb.ConnectorRenderers[renderMode].apply(c, [connectorArgs]);
             return c;
         };
 
         this.setConnector = function(connectorSpec, doNotRepaint) {
-            // 创建连接
-            // debugger;
+            // 创建连接 // 传入参数：线段类型，是否需要
+            debugger;  // makeConnector
+            console.log("Connection-params:");
+            console.log(params);
             if (connector != null) _ju.removeElements(connector.getDisplayElements());
             var connectorArgs = {
                     _jsPlumb:self._jsPlumb,
@@ -5705,6 +5739,7 @@
                     connector = makeConnector(renderMode, connectorSpec[0], connectorArgs);
                 else
                     connector = makeConnector(renderMode, connectorSpec[0], _ju.merge(connectorSpec[1], connectorArgs));
+            //     绑定了一堆函数回来
             }
             // binds mouse listeners to the current connector.
             self.bindLineListeners(connector, self, _internalHover);
@@ -5742,15 +5777,7 @@
         // member and take action if they need to.
         self.previousConnection = params.previousConnection;
         this.sourceId = _att(this.source, "id");
-        // 未完待续
         this.targetId = _att(this.target, "id");
-        console.clear();
-        console.log("anchors: <br/>");
-        console.log(params["anchors"]);
-        // console.log(params["anchors"][0].type);
-        // if(params["anchors"][0].type){
-        //     this.sourcePos = params["anchors"][0].type;
-        // }
         this.scope = params.scope; // scope may have been passed in to the connect call. if it wasn't, we will pull it from the source endpoint, after having initialised the endpoints.
         this.endpoints = [];
         this.endpointStyles = [];
@@ -5815,6 +5842,7 @@
                 }
                 return e;
             };
+        debugger;
         var eS = prepareEndpoint(params.sourceEndpoint, 0, params, self.source,
             self.sourceId, params.paintStyle, params.hoverPaintStyle);
         if (eS) _ju.addToList(params.endpointsByElement, this.sourceId, eS);
@@ -5843,7 +5871,6 @@
             jsPlumb.Defaults.Connector, true);
 
         if (params.path)
-        // //debugger;
             connector.setPath(params.path);
 
         this.setPaintStyle(this.endpoints[0].connectorStyle ||
@@ -6587,6 +6614,8 @@
                 return { segment:segments[idx], proportion:inSegmentProportion, index:idx };
             },
             _addSegment = function(type, params) {
+                // 添加线段
+                console.log("_addSegment的params:"+params);
                 var s = new jsPlumb.Segments[type](params);
                 segments.push(s);
                 totalLength += s.getLength();
@@ -6600,6 +6629,7 @@
             };
 
         this.setSegments = function(_segs) {
+            // 添加线段们
             userProvidedSegments = [];
             totalLength = 0;
             for (var i = 0; i < _segs.length; i++) {
@@ -6609,6 +6639,8 @@
         };
 
         var _prepareCompute = function(params) {
+            debugger;
+            console.log("_prepareCompute的params:"+params);
             self.lineWidth = params.lineWidth;
             var segment = jsPlumbUtil.segment(params.sourcePos, params.targetPos),
                 swapX = params.targetPos[0] < params.sourcePos[0],
@@ -6702,6 +6734,7 @@
                 paintInfo = _prepareCompute(params);
 
             _clearSegments();
+            debugger;
             this._compute(paintInfo, params);
             self.x = paintInfo.points[0];
             self.y = paintInfo.points[1];
@@ -7767,6 +7800,7 @@
      * cornerRadius - optional, defines the radius of corners between segments. defaults to 0 (hard edged corners).
      */
     jsPlumb.Connectors.Flowchart = function(params) {
+        debugger;
         this.type = "Flowchart";
         params = params || {};
         params.stub = params.stub || 30;
@@ -7796,6 +7830,7 @@
 
                 lastx = x;
                 lasty = y;
+                // 填入坐标
                 segments.push([lx, ly, x, y, o, sgnx, sgny]);
             },
             segLength = function(s) {
@@ -7874,7 +7909,7 @@
         };
 
         this._compute = function(paintInfo, params) {
-
+            // 计算线段
             if (params.clearEdits)
                 userSuppliedSegments = null;
 
@@ -8039,6 +8074,7 @@
 
         this.setPath = function(path) {
             // 设置路径
+            debugger;
             userSuppliedSegments = [];
             // 遍历参数
             for (var i = 0; i < path.length; i++) {
@@ -8055,7 +8091,7 @@
         };
     };
 })();
-
+// vml设置
 ;(function() {
 
     // http://ajaxian.com/archives/the-vml-changes-in-ie-8
@@ -8357,7 +8393,6 @@
     jsPlumb.Segments.vml = {
         SegmentRenderer : {
             getPath : function(segment) {
-                //debugger;
                 return ({
                     "Straight":function(segment) {
                         var d = segment.params;
@@ -8624,7 +8659,7 @@
             node.setAttribute(STYLE, applyGradientTo + ":url(#" + id + ")");
         },
         _applyStyles = function(parent, node, style, dimensions, uiComponent) {
-
+            debugger;
             if (style.gradient) {
                 _updateGradient(parent, node, style, dimensions, uiComponent);
             }
@@ -8804,7 +8839,7 @@
 	 * Base class for SVG connectors.
 	 */
     var SvgConnector = jsPlumb.ConnectorRenderers.svg = function(params) {
-        //debugger;
+        debugger;
         var self = this,
             _super = SvgComponent.apply(this, [ {
                 cssClass:params["_jsPlumb"].connectorClass,
@@ -8820,7 +8855,9 @@
             if (extents.ymin < 0) offset[1] = -extents.ymin;
 
             // create path from segments.
+            // 为线段创建path路径,s所以重绘路径主要是改变segments
             for (var i = 0; i < segments.length; i++) {
+                debugger;
                 p += jsPlumb.Segments.svg.SegmentRenderer.getPath(segments[i]);
                 p += " ";
             }
@@ -8876,7 +8913,7 @@
     jsPlumb.Segments.svg = {
         SegmentRenderer : {
             getPath : function(segment) {
-                //debugger;
+                debugger;
                 return ({
                     "Straight":function() {
                         var d = segment.getCoordinates();
@@ -9001,12 +9038,13 @@
     jsPlumb.Overlays.svg.Custom = jsPlumb.Overlays.Custom;
 
     var AbstractSvgArrowOverlay = function(superclass, originalArgs) {
-
+        debugger;
         superclass.apply(this, originalArgs);
         jsPlumb.jsPlumbUIComponent.apply(this, originalArgs);
         this.isAppendedAtTopLevel = false;
         var self = this, path = null;
         this.paint = function(params, containerExtents) {
+            // 绘制path路径，不包括端点
             // only draws on connections, not endpoints.
             if (params.component.svg && containerExtents) {
                 if (path == null) {
