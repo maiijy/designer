@@ -696,7 +696,7 @@ $(document).ready(function(){
                     lineWidth: 1
                 },//端点的色彩样式
                 isSource: true,    //是否可以拖动(作为连线出发点)
-                connector: ["Straight", { curviness:100 } ],//设置连线为贝塞尔曲线
+                connector: ["Flowchart", { curviness:100 } ],//设置连线为贝塞尔曲线
                 isTarget: true,    //是否可以放置(连线终点)
                 maxConnections: -1,    // 设置连接点最多可以连接几条线
             };

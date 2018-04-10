@@ -1426,8 +1426,7 @@
              * @param ui UI object from current library's event system. optional.
              * @param timestamp timestamp for this paint cycle. used to speed things up a little by cutting down the amount of offset calculations we do.
              */
-            _draw = function(element, ui, timestamp, clearEdits) {
-
+            _draw = function(element, ui, timestamp, clearEdits,able) {
                 // TODO is it correct to filter by headless at this top level? how would a headless adapter ever repaint?
                 if (!jsPlumbAdapter.headless && !_suspendDrawing) {
                     // debugger; 连接上
@@ -1437,13 +1436,17 @@
 
                     if (timestamp == null) timestamp = _timestamp();
                     // 重新渲染当前锚点等
-                    _currentInstance.anchorManager.redraw(id, ui, timestamp, null, clearEdits);
+                    var flag = _currentInstance.anchorManager.redraw(id, ui, timestamp, null, clearEdits);
                     if (repaintEls) {
                         for (var i in repaintEls) {
                             _currentInstance.anchorManager.redraw(repaintEls[i].id, ui, timestamp, repaintEls[i].offset, clearEdits);
                         }
                     }
+                    return flag;
                 }
+                // if(able){
+                //
+                // }
             },
 
             /**
@@ -1489,22 +1492,36 @@
                                 stopEvent = jpcl.dragEvents["stop"],
                                 startEvent = jpcl.dragEvents["start"];
                             // 初始化 drag对象的事件
+                            var originalUI = {};
+                            var flag = 0;
                             options[startEvent] = _wrap(options[startEvent], function() {
+                                originalUI.left = this.offsetLeft;
+                                originalUI.top = this.offsetTop;
+                                console.log(originalUI);
                                 _currentInstance.setHoverSuspended(true);
                                 _currentInstance.select({source:element}).addClass(_currentInstance.elementDraggingClass + " " + _currentInstance.sourceElementDraggingClass, true);
                                 _currentInstance.select({target:element}).addClass(_currentInstance.elementDraggingClass + " " + _currentInstance.targetElementDraggingClass, true);
+
                             });
 
                             options[dragEvent] = _wrap(options[dragEvent], function() {
-                                debugger;
                                 var ui = jpcl.getUIPosition(arguments, _currentInstance.getZoom());
-                                _draw(element, ui, null, true);
+
+                                console.log(ui);
+                                // ui={left,top}
+                                flag = _draw(element, ui, null, true,false);
+                                debugger;
                                 _addClass(element, "jsPlumb_dragged");
                             });
                             options[stopEvent] = _wrap(options[stopEvent], function() {
-                                debugger;
                                 var ui = jpcl.getUIPosition(arguments, _currentInstance.getZoom());
-                                _draw(element, ui);
+                                if(flag){
+                                    _draw(element, originalUI,null,null,false);
+                                    this.style.left = originalUI.left+"px";
+                                    this.style.top = originalUI.top+"px";
+                                }else{
+                                    _draw(element, ui,null,null,false);
+                                }
                                 _removeClass(element, "jsPlumb_dragged");
                                 _currentInstance.setHoverSuspended(false);
                                 _currentInstance.select({source:element}).removeClass(_currentInstance.elementDraggingClass + " " + _currentInstance.sourceElementDraggingClass, true);
@@ -1516,6 +1533,8 @@
                             options.disabled = draggable == null ? false : !draggable;
                             jpcl.initDraggable(element, options, false, _currentInstance);
                             _currentInstance.dragManager.register(element);
+                            debugger;
+
                         }
                     }
                 }
@@ -1667,7 +1686,7 @@
                 // to make that call here or in the anchor manager.  i think perhaps here.
                 _currentInstance.anchorManager.newConnection(jpc);
                 // force a paint
-                _draw(jpc.source);
+                _draw(jpc.source,null,null,null,true);
 
                 // fire an event
                 if (!params.doNotFireConnectionEvent && params.fireEvent !== false) {
@@ -1720,7 +1739,7 @@
                 // debugger;
                 var endpointFunc = _currentInstance.Defaults.EndpointType || jsPlumb.Endpoint;
                 var _p = jsPlumb.extend({}, params);
-                console.clear();
+                // console.clear();
                 console.log(_p);
                 _p.parent = _getParentFromParams(_p);
                 _p["_jsPlumb"] = _currentInstance;
@@ -2858,7 +2877,7 @@
 
                         }
                     };
-
+                debugger;
                 var dropEvent = jpcl.dragEvents['drop'];
                 dropOptions["scope"] = dropOptions["scope"] || targetScope;
                 dropOptions[dropEvent] = _wrap(dropOptions[dropEvent], _drop);
@@ -3251,10 +3270,10 @@
             debugger;
             if (typeof el == 'object' && el.length)
                 for ( var i = 0, ii = el.length; i < ii; i++) {
-                    _draw(_gel(el[i]), ui, timestamp);
+                    _draw(_gel(el[i]), ui, timestamp,null,true);
                 }
             else // ...and single strings.
-                _draw(_gel(el), ui, timestamp);
+                _draw(_gel(el), ui, timestamp,null,true);
 
             return _currentInstance;
         };
@@ -3263,7 +3282,7 @@
         this.repaintEverything = function() {
             var timestamp = _timestamp();
             for ( var elId in endpointsByElement) {
-                _draw(_gel(elId), null, timestamp);
+                _draw(_gel(elId), null, timestamp,null,true);
             }
             return _currentInstance;
         };
@@ -3908,12 +3927,18 @@
                     endpointConnections = connectionsByElementId[elementId] || [],  // 根据id获取当前div上或有存在的连接
                     connectionsToPaint = [],
                     endpointsToPaint = [],
-                    anchorsToUpdate = [];
-
+                    anchorsToUpdate = [],
+                    flag = 0;
+                console.log("ep:");
+                console.log(ep);
                 timestamp = timestamp || jsPlumbInstance.timestamp();
                 // offsetToUI are values that would have been calculated in the dragManager when registering
                 // an endpoint for an element that had a parent (somewhere in the hierarchy) that had been
                 // registered as draggable.
+                /*
+                offsetToUI是在dragManager注册一个元素的端点时计算的值，
+                该元素的父元素(在层次结构中的某个位置)被注册为可拖放。
+                 */
                 offsetToUI = offsetToUI || {left:0, top:0};
                 if (ui) {
                     ui = {
@@ -4010,7 +4035,7 @@
                 // TODO performance: add the endpoint ids to a temp array, and then when iterating in the next
                 // loop, check that we didn't just paint that endpoint. we can probably shave off a few more milliseconds this way.
                 for (var i = 0; i < ep.length; i++) {
-                    // debugger;
+                    // 绘制每个端点
                     ep[i].paint( { timestamp : timestamp, offset : myOffset, dimensions : myWH });
                 }
                 // ... and any other endpoints we came across as a result of the continuous anchors.
@@ -4024,7 +4049,7 @@
                 // static and therefore does need to be recomputed; we make sure that happens only one time.
                 // TODO we could have compiled a list of these in the first pass through connections; might save some time.
                 for (var i = 0; i < endpointConnections.length; i++) {
-                    var otherEndpoint = endpointConnections[i][1];
+                    var otherEndpoint = endpointConnections[i][1]; // endpoint
                     if (otherEndpoint.anchor.constructor == jsPlumb.DynamicAnchor) {
                         otherEndpoint.paint({ elementWithPrecedence:elementId });
                         jsPlumbUtil.addWithFunction(connectionsToPaint, endpointConnections[i][0], function(c) { return c.id == endpointConnections[i][0].id; });
@@ -4038,15 +4063,19 @@
                     }
                 }
                 // paint current floating connection for this element, if there is one.
+                // 如果有此元素的当前浮动连接
                 var fc = floatingConnections[elementId];
-                debugger;
                 if (fc)
                     fc.paint({timestamp:timestamp, recalc:false, elId:elementId});
-
                 // paint all the connections
                 for (var i = 0; i < connectionsToPaint.length; i++) {
+                    // 连线的paint
                     connectionsToPaint[i].paint({elId:elementId, timestamp:timestamp, recalc:false, clearEdits:clearEdits});
+                    if(connectionsToPaint[i].flag == 1){
+                        flag = 1;
+                    }
                 }
+                return flag;
             }
         };
         this.rehomeEndpoint = function(currentId, element) {
@@ -5066,6 +5095,7 @@
         };
         // jsPlumb.Endpoint的paint 4.2 重新计算了anchor和endpoint的距离等
         this.paint = function(params) {
+            // debugger;
             params = params || {};
             var timestamp = params.timestamp, recalc = !(params.recalc === false);
             if (!timestamp || self.timestamp !== timestamp) {
@@ -5343,12 +5373,12 @@
                             // i wonder if this one should post an event though.  maybe this is good like this.
                             // 连接到浮动点时，可以取消这段链接
                             // 取消连接，重写
-                            console.clear();
+                            // console.clear();
                             debugger;
                             console.log(jpc.getConnector());
                             console.log(jpc.getConnector().getDisplayElements());
                             // debugger for next step
-                            // _ju.removeElements(jpc.getConnector().getDisplayElements(), self.parent);
+                            _ju.removeElements(jpc.getConnector().getDisplayElements(), self.parent);
                             self.detachFromConnection(jpc);
                         }
                     }
@@ -5363,7 +5393,7 @@
 
                     self.anchor.locked = false;
                     // debugger for next step
-                    // self.paint({recalc:false});
+                    self.paint({recalc:false});
 
                     jpc.removeClass(_jsPlumb.draggingClass);
                     floatingEndpoint.removeClass(_jsPlumb.draggingClass);
@@ -6043,7 +6073,7 @@
         var lastPaintedAt = null;
         // 连线的paint 3.29
         this.paint = function(params) {
-            debugger;
+            // debugger;4.8
             if (visible) {
 
                 params = params || {};
@@ -6078,7 +6108,7 @@
                         targetInfo:targetInfo,
                         clearEdits:params.clearEdits === true
                     });
-
+                    this.flag = connector.flag;
                     var overlayExtents = {
                         minX:Infinity,
                         minY:Infinity,
@@ -6087,6 +6117,9 @@
                     };
                     // compute overlays. we do this first so we can get their placements, and adjust the
                     // container if needs be (if an overlay would be clipped)
+                    /*
+                    计算覆盖。我们首先这样做，这样我们就可以得到他们的位置，如果需要的话，可以调整容器
+                     */
                     for ( var i = 0; i < self.overlays.length; i++) {
                         var o = self.overlays[i];
                         if (o.isVisible()) {
@@ -6127,7 +6160,7 @@
          * Repaints the Connection. No parameters exposed to public API.
          */
         this.repaint = function(params) {
-            debugger;
+            //debugger;4.8
             params = params || {};
             var recalc = !(params.recalc === false);
             this.paint({ elId : this.sourceId, recalc : recalc, timestamp:params.timestamp, clearEdits:params.clearEdits });
@@ -6764,11 +6797,12 @@
         };
 
         this.compute = function(params)  {
+            // 进行连线的计算
             if (!edited)
                 paintInfo = _prepareCompute(params);
 
             _clearSegments();
-            // debugger; 连接上
+            // 连接上
             this._compute(paintInfo, params);
             self.x = paintInfo.points[0];
             self.y = paintInfo.points[1];
@@ -7851,6 +7885,7 @@
              * helper method to add a segment.
              */
             addSegment = function(segments, x, y, sx, sy) {
+                // debugger;
                 // if segment would have length zero, dont add it.
                 if (sx == lastx && sy == lasty) return;
                 if (x == lastx && y == lasty) return;
@@ -7945,145 +7980,173 @@
 
         this._compute = function(paintInfo, params) {
             // 计算线段
-            debugger;
-            if (params.clearEdits)
-                userSuppliedSegments = null;
-
-            if (userSuppliedSegments != null) {
-                writeSegments(userSuppliedSegments, paintInfo);
-                return;
+            // debugger;4.8
+            console.log("paintInfo");
+            console.log(paintInfo);
+            var height = 20;
+            var flag1 = 0;
+            var flag2 = 0;
+            if(params.sourceInfo.left<=params.sourcePos[0]&&
+                params.sourcePos[0]<params.targetInfo.left&&
+                params.targetInfo.left<=params.targetPos[0]){
+                flag1 = 1;
+            }else if(params.sourceInfo.left>=params.sourcePos[0]&&
+                params.sourcePos[0]>params.targetInfo.left&&
+                params.targetInfo.left>=params.targetPos[0]){
+                flag1 = 1;
             }
+            var tmp = params.targetPos[1] - params.sourcePos[1];
+            var dis  = tmp>0?tmp:-tmp;
+            if(!flag1&&dis<height){
+                flag2 = 1;
+            }
+            // if(!flag2){
+                if (params.clearEdits)
+                    userSuppliedSegments = null;
 
-            segments = [];
-            lastx = null; lasty = null;
-            lastOrientation = null;
-
-            var midx = paintInfo.startStubX + ((paintInfo.endStubX - paintInfo.startStubX) * midpoint),
-                midy = paintInfo.startStubY + ((paintInfo.endStubY - paintInfo.startStubY) * midpoint);
-
-            // add the start stub segment.
-            addSegment(segments, paintInfo.startStubX, paintInfo.startStubY, paintInfo.sx, paintInfo.sy);
-
-            var findClearedLine = function(start, mult, anchorPos, dimension) {
-                    return start + (mult * (( 1 - anchorPos) * dimension) + _super.maxStub);
-                },
-                orientations = { x:[ 0, 1 ], y:[ 1, 0 ] },
-                lineCalculators = {
-                    perpendicular : function(axis) {
-                        with (paintInfo) {
-                            var sis = {
-                                    x:[ [ [ 1,2,3,4 ], null, [ 2,1,4,3 ] ], null, [ [ 4,3,2,1 ], null, [ 3,4,1,2 ] ] ],
-                                    y:[ [ [ 3,2,1,4 ], null, [ 2,3,4,1 ] ], null, [ [ 4,1,2,3 ], null, [ 1,4,3,2 ] ] ]
-                                },
-                                stubs = {
-                                    x:[ [ startStubX, endStubX ] , null, [ endStubX, startStubX ] ],
-                                    y:[ [ startStubY, endStubY ] , null, [ endStubY, startStubY ] ]
-                                },
-                                midLines = {
-                                    x:[ [ midx, startStubY ], [ midx, endStubY ] ],
-                                    y:[ [ startStubX, midy ], [ endStubX, midy ] ]
-                                },
-                                linesToEnd = {
-                                    x:[ [ endStubX, startStubY ] ],
-                                    y:[ [ startStubX, endStubY ] ]
-                                },
-                                startToEnd = {
-                                    x:[ [ startStubX, endStubY ], [ endStubX, endStubY ] ],
-                                    y:[ [ endStubX, startStubY ], [ endStubX, endStubY ] ]
-                                },
-                                startToMidToEnd = {
-                                    x:[ [ startStubX, midy ], [ endStubX, midy ], [ endStubX, endStubY ] ],
-                                    y:[ [ midx, startStubY ], [ midx, endStubY ], [ endStubX, endStubY ] ]
-                                },
-                                otherStubs = {
-                                    x:[ startStubY, endStubY ],
-                                    y:[ startStubX, endStubX ]
-                                },
-
-                                soIdx = orientations[axis][0], toIdx = orientations[axis][1],
-                                _so = so[soIdx] + 1,
-                                _to = to[toIdx] + 1,
-                                otherFlipped = (to[toIdx] == -1 && (otherStubs[axis][1] < otherStubs[axis][0])) || (to[toIdx] == 1 && (otherStubs[axis][1] > otherStubs[axis][0])),
-                                stub1 = stubs[axis][_so][0],
-                                stub2 = stubs[axis][_so][1],
-                                segmentIndexes = sis[axis][_so][_to];
-
-                            if (segment == segmentIndexes[3] || (segment == segmentIndexes[2] && otherFlipped)) {
-                                return midLines[axis];
-                            }
-                            else if (segment == segmentIndexes[2] && stub2 < stub1) {
-                                return linesToEnd[axis];
-                            }
-                            else if ((segment == segmentIndexes[2] && stub2 >= stub1) || (segment == segmentIndexes[1] && !otherFlipped)) {
-                                return startToMidToEnd[axis];
-                            }
-                            else if (segment == segmentIndexes[0] || (segment == segmentIndexes[1] && otherFlipped)) {
-                                return startToEnd[axis];
-                            }
-                        }
-                    },
-                    orthogonal : function(axis) {
-                        var pi = paintInfo,
-                            extent = {
-                                "x":pi.so[0] == -1 ? Math.min(pi.startStubX, pi.endStubX) : Math.max(pi.startStubX, pi.endStubX),
-                                "y":pi.so[1] == -1 ? Math.min(pi.startStubY, pi.endStubY) : Math.max(pi.startStubY, pi.endStubY)
-                            }[axis];
-
-                        return {
-                            "x":[ [ extent, pi.startStubY ],[ extent, pi.endStubY ], [ pi.endStubX, pi.endStubY ] ],
-                            "y":[ [ pi.startStubX, extent ], [ pi.endStubX, extent ],[ pi.endStubX, pi.endStubY ] ]
-                        }[axis];
-                    },
-                    opposite : function(axis) {
-                        var pi = paintInfo,
-                            otherAxis = {"x":"y","y":"x"}[axis],
-                            stub = "Stub" + axis.toUpperCase(),
-                            otherStub = "Stub" + otherAxis.toUpperCase(),
-                            otherStartStub = pi["start" + otherStub],
-                            startStub = pi["start" + stub],
-                            otherEndStub = pi["end" + otherStub],
-                            endStub = pi["end" + stub],
-                            dim = {"x":"height","y":"width"}[axis],
-                            comparator = pi["is" + axis.toUpperCase() + "GreaterThanStubTimes2"],
-                            idx = axis == "x" ? 0 : 1;
-
-                        if (params.sourceEndpoint.elementId == params.targetEndpoint.elementId) {
-                            var _val = otherStartStub + ((1 - params.sourceAnchor[otherAxis]) * params.sourceInfo[dim]) + _super.maxStub;
-                            return {
-                                "x":[ [ startStub, _val ], [ endStub, _val ] ],
-                                "y":[ [ _val, startStub ], [ _val, endStub ] ]
-                            }[axis];
-
-                        }
-                        else if (!comparator || (pi.so[idx] == 1 && startStub > endStub)
-                            || (pi.so[idx] == -1 && startStub < endStub)) {
-                            return {
-                                "x":[[ startStub, midy ], [ endStub, midy ]],
-                                "y":[[ midx, startStub ], [ midx, endStub ]]
-                            }[axis];
-                        }
-                        else if ((pi.so[idx] == 1 && startStub < endStub) || (pi.so[idx] == -1 && startStub > endStub)) {
-                            return {
-                                "x":[[ midx, pi.sy ], [ midx, pi.ty ]],
-                                "y":[[ pi.sx, midy ], [ pi.tx, midy ]]
-                            }[axis];
-                        }
-                    }
-                },
-                p = lineCalculators[paintInfo.anchorOrientation](paintInfo.sourceAxis);
-
-            if (p) {
-                for (var i = 0; i < p.length; i++) {
-                    addSegment(segments, p[i][0], p[i][1]);
+                if (userSuppliedSegments != null) {
+                    writeSegments(userSuppliedSegments, paintInfo);
+                    return;
                 }
-            }
 
-            addSegment(segments, paintInfo.endStubX, paintInfo.endStubY);
+                segments = [];
+                lastx = null; lasty = null;
+                lastOrientation = null;
 
-            // end stub
-            addSegment(segments, paintInfo.tx, paintInfo.ty);
+                var midx = paintInfo.startStubX + ((paintInfo.endStubX - paintInfo.startStubX) * midpoint),
+                    midy = paintInfo.startStubY + ((paintInfo.endStubY - paintInfo.startStubY) * midpoint);
 
-            writeSegments(segments, paintInfo);
+                // add the start stub segment.
+                addSegment(segments, paintInfo.startStubX, paintInfo.startStubY, paintInfo.sx, paintInfo.sy);
+
+                var findClearedLine = function(start, mult, anchorPos, dimension) {
+                        return start + (mult * (( 1 - anchorPos) * dimension) + _super.maxStub);
+                    },
+                    orientations = { x:[ 0, 1 ], y:[ 1, 0 ] },
+                    lineCalculators = {
+                        // 垂直
+                        perpendicular : function(axis) {
+                            with (paintInfo) {
+                                var sis = {
+                                        x:[ [ [ 1,2,3,4 ], null, [ 2,1,4,3 ] ], null, [ [ 4,3,2,1 ], null, [ 3,4,1,2 ] ] ],
+                                        y:[ [ [ 3,2,1,4 ], null, [ 2,3,4,1 ] ], null, [ [ 4,1,2,3 ], null, [ 1,4,3,2 ] ] ]
+                                    },
+                                    stubs = {
+                                        x:[ [ startStubX, endStubX ] , null, [ endStubX, startStubX ] ],
+                                        y:[ [ startStubY, endStubY ] , null, [ endStubY, startStubY ] ]
+                                    },
+                                    midLines = {
+                                        x:[ [ midx, startStubY ], [ midx, endStubY ] ],
+                                        y:[ [ startStubX, midy ], [ endStubX, midy ] ]
+                                    },
+                                    linesToEnd = {
+                                        x:[ [ endStubX, startStubY ] ],
+                                        y:[ [ startStubX, endStubY ] ]
+                                    },
+                                    startToEnd = {
+                                        x:[ [ startStubX, endStubY ], [ endStubX, endStubY ] ],
+                                        y:[ [ endStubX, startStubY ], [ endStubX, endStubY ] ]
+                                    },
+                                    startToMidToEnd = {
+                                        x:[ [ startStubX, midy ], [ endStubX, midy ], [ endStubX, endStubY ] ],
+                                        y:[ [ midx, startStubY ], [ midx, endStubY ], [ endStubX, endStubY ] ]
+                                    },
+                                    otherStubs = {
+                                        x:[ startStubY, endStubY ],
+                                        y:[ startStubX, endStubX ]
+                                    },
+
+                                    soIdx = orientations[axis][0], toIdx = orientations[axis][1],
+                                    _so = so[soIdx] + 1,
+                                    _to = to[toIdx] + 1,
+                                    otherFlipped = (to[toIdx] == -1 && (otherStubs[axis][1] < otherStubs[axis][0])) || (to[toIdx] == 1 && (otherStubs[axis][1] > otherStubs[axis][0])),
+                                    stub1 = stubs[axis][_so][0],
+                                    stub2 = stubs[axis][_so][1],
+                                    segmentIndexes = sis[axis][_so][_to];
+
+                                if (segment == segmentIndexes[3] || (segment == segmentIndexes[2] && otherFlipped)) {
+                                    return midLines[axis];
+                                }
+                                else if (segment == segmentIndexes[2] && stub2 < stub1) {
+                                    return linesToEnd[axis];
+                                }
+                                else if ((segment == segmentIndexes[2] && stub2 >= stub1) || (segment == segmentIndexes[1] && !otherFlipped)) {
+                                    return startToMidToEnd[axis];
+                                }
+                                else if (segment == segmentIndexes[0] || (segment == segmentIndexes[1] && otherFlipped)) {
+                                    return startToEnd[axis];
+                                }
+                            }
+                        },
+                        // 正交
+                        orthogonal : function(axis) {
+                            var pi = paintInfo,
+                                extent = {
+                                    "x":pi.so[0] == -1 ? Math.min(pi.startStubX, pi.endStubX) : Math.max(pi.startStubX, pi.endStubX),
+                                    "y":pi.so[1] == -1 ? Math.min(pi.startStubY, pi.endStubY) : Math.max(pi.startStubY, pi.endStubY)
+                                }[axis];
+
+                            return {
+                                "x":[ [ extent, pi.startStubY ],[ extent, pi.endStubY ], [ pi.endStubX, pi.endStubY ] ],
+                                "y":[ [ pi.startStubX, extent ], [ pi.endStubX, extent ],[ pi.endStubX, pi.endStubY ] ]
+                            }[axis];
+                        },
+                        // 相反
+                        opposite : function(axis) {
+                            var pi = paintInfo,
+                                otherAxis = {"x":"y","y":"x"}[axis],
+                                stub = "Stub" + axis.toUpperCase(),
+                                otherStub = "Stub" + otherAxis.toUpperCase(),
+                                otherStartStub = pi["start" + otherStub],
+                                startStub = pi["start" + stub],
+                                otherEndStub = pi["end" + otherStub],
+                                endStub = pi["end" + stub],
+                                dim = {"x":"height","y":"width"}[axis],
+                                comparator = pi["is" + axis.toUpperCase() + "GreaterThanStubTimes2"],
+                                idx = axis == "x" ? 0 : 1;
+
+                            if (params.sourceEndpoint.elementId == params.targetEndpoint.elementId) {
+                                var _val = otherStartStub + ((1 - params.sourceAnchor[otherAxis]) * params.sourceInfo[dim]) + _super.maxStub;
+                                return {
+                                    "x":[ [ startStub, _val ], [ endStub, _val ] ],
+                                    "y":[ [ _val, startStub ], [ _val, endStub ] ]
+                                }[axis];
+
+                            }
+                            else if (!comparator || (pi.so[idx] == 1 && startStub > endStub)
+                                || (pi.so[idx] == -1 && startStub < endStub)) {
+                                return {
+                                    "x":[[ startStub, midy ], [ endStub, midy ]],
+                                    "y":[[ midx, startStub ], [ midx, endStub ]]
+                                }[axis];
+                            }
+                            else if ((pi.so[idx] == 1 && startStub < endStub) || (pi.so[idx] == -1 && startStub > endStub)) {
+                                return {
+                                    "x":[[ midx, pi.sy ], [ midx, pi.ty ]],
+                                    "y":[[ pi.sx, midy ], [ pi.tx, midy ]]
+                                }[axis];
+                            }
+                        }
+                    },
+                    p = lineCalculators[paintInfo.anchorOrientation](paintInfo.sourceAxis);
+                console.log(paintInfo.anchorOrientation);
+                console.log(paintInfo.sourceAxis);
+                if (p) {
+                    for (var i = 0; i < p.length; i++) {
+                        addSegment(segments, p[i][0], p[i][1]);
+                        console.log(p[i][0]);
+                    }
+                }
+
+                addSegment(segments, paintInfo.endStubX, paintInfo.endStubY);
+
+                // end stub
+                addSegment(segments, paintInfo.tx, paintInfo.ty);
+                // console.clear();
+                // console.log(segments);
+                writeSegments(segments, paintInfo);
+            // }
+           self.flag = flag2;
         };
 
         this.getPath = function() {
@@ -8838,9 +8901,11 @@
         };
 
         this.paint = function(style, anchor, extents) {
+            // debugger;4.8
             if (style != null) {
 
                 var xy = [ self.x, self.y ], wh = [ self.w, self.h ], p;
+                // x坐标，y坐标，宽高
                 if (extents != null) {
                     if (extents.xmin < 0) xy[0] += extents.xmin;
                     if (extents.ymin < 0) xy[1] += extents.ymin;
@@ -8858,6 +8923,8 @@
 
                 renderer.paint.apply(this, arguments);
                 // //debugger; //3
+                console.log(wh[0]);
+                console.log(wh[1]);
                 _attr(self.svg, {
                     "style":p,
                     "width": wh[0],
@@ -9419,7 +9486,8 @@
          * see getDragObject as well
          */
         getUIPosition : function(eventArgs, zoom) {
-
+            // eventArgs[0]:
+            // debugger;
             zoom = zoom || 1;
             // this code is a workaround for the case that the element being dragged has a margin set on it. jquery UI passes
             // in the wrong offset if the element has a margin (it doesn't take the margin into account).  the getBoundingClientRect
