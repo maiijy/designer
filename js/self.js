@@ -172,7 +172,7 @@ function getSingleChartJson(id){
     });
 
     var serliza="{"+'"connects":'+JSON.stringify(connects)+',"block":'+JSON.stringify(blocks)+"}";
-    console.log(serliza);
+    // console.log(serliza);
     return serliza;
 }
     //新增一个部件

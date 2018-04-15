@@ -870,7 +870,7 @@
 
             this.bindLineListeners = function(obj,_self,_hoverFunction){
                 //绑定线段监听事件
-                console.log(_hoverFunction);
+                // console.log(_hoverFunction);
                 obj.bind("click", function(ep, e) { _self.fire("click", _self, e); });
                 obj.bind("dblclick", function(ep, e) { _self.fire("dblclick", _self, e); });
                 obj.bind("contextmenu", function(ep, e) { _self.fire("contextmenu", _self, e); });
@@ -890,7 +890,6 @@
                     }
                 });
                 obj.bind("mousedown", function(ep, e) {
-                    console.log(e.clientX);
                     _self.fire("mousedown", _self, e);
                 });
                 obj.bind("mouseup", function(ep, e) {
@@ -900,7 +899,6 @@
 
             this.bindListeners = function(obj, _self, _hoverFunction) {
                 //绑定鼠标事件
-                console.log(_self);
                 obj.bind("click", function(ep, e) { _self.fire("click", _self, e); });
                 obj.bind("dblclick", function(ep, e) { _self.fire("dblclick", _self, e); });
                 obj.bind("contextmenu", function(ep, e) { _self.fire("contextmenu", _self, e); });
@@ -1437,13 +1435,15 @@
 
                     if (timestamp == null) timestamp = _timestamp();
                     // 重新渲染当前锚点等
+                    // debugger;//huia
                     tmp =_currentInstance.anchorManager.redraw(id, ui, timestamp, null, clearEdits);
+                    // console.log("_draw.flag");
+                    // console.log(tmp);
                     if (repaintEls) {
                         for (var i in repaintEls) {
                             _currentInstance.anchorManager.redraw(repaintEls[i].id, ui, timestamp, repaintEls[i].offset, clearEdits);
                         }
                     }
-                    return tmp;
                 }
             },
 
@@ -1495,7 +1495,7 @@
                                 flag = 0;
                                 originalUI.left = this.offsetLeft;
                                 originalUI.top = this.offsetTop;
-                                console.log(originalUI);
+                                // console.log(originalUI);
                                 _currentInstance.setHoverSuspended(true);
                                 _currentInstance.select({source:element}).addClass(_currentInstance.elementDraggingClass + " " + _currentInstance.sourceElementDraggingClass, true);
                                 _currentInstance.select({target:element}).addClass(_currentInstance.elementDraggingClass + " " + _currentInstance.targetElementDraggingClass, true);
@@ -1504,15 +1504,16 @@
 
                             options[dragEvent] = _wrap(options[dragEvent], function() {
                                 var ui = jpcl.getUIPosition(arguments, _currentInstance.getZoom());
-
-                                console.log(ui);
                                 // ui={left,top}
-                                flag = _draw(element, ui, null, true,false);
+                                 _draw(element, ui, null, true,false);
                                 _addClass(element, "jsPlumb_dragged");
                             });
                             options[stopEvent] = _wrap(options[stopEvent], function() {
                                 var ui = jpcl.getUIPosition(arguments, _currentInstance.getZoom());
-                                if(flag){
+                                var obj = document.getElementById(element[0].id);
+                                flag = obj.getAttribute('flag');
+                                debugger;
+                                if(flag ==='1'){
                                     _draw(element, originalUI,null,null,false);
                                     this.style.left = originalUI.left+"px";
                                     this.style.top = originalUI.top+"px";
@@ -1737,7 +1738,6 @@
                 var endpointFunc = _currentInstance.Defaults.EndpointType || jsPlumb.Endpoint;
                 var _p = jsPlumb.extend({}, params);
                 // ;
-                console.log(_p);
                 _p.parent = _getParentFromParams(_p);
                 _p["_jsPlumb"] = _currentInstance;
                 _p.newConnection = _newConnection;
@@ -2046,7 +2046,6 @@
                 // 绘制
                 e.paint(endpointPaintParams);
                 results.push(e);
-                // console.log(e);
                 e.endpoint.canvas.setAttribute("data-mode",params.anchors);
                 //if (!jsPlumbAdapter.headless)
                 //_currentInstance.dragManager.endpointAdded(_el);
@@ -2407,7 +2406,6 @@
                 if (filterList(scopes, i)) {
                     for ( var j = 0, jj = connectionsByScope[i].length; j < jj; j++) {
                         var c = connectionsByScope[i][j];
-                        console.log(c)
                         if (filterList(sources, c.sourceId) && filterList(targets, c.targetId))
                             _addOne(i, c);
                     }
@@ -3261,22 +3259,34 @@
             _currentInstance.bind("ready", fn);
         };
 
-        // repaint some element's endpoints and connections keypoint!!!
+        // repaint some element's endpoints and connections
         this.repaint = function(el, ui, timestamp) {
             // support both lists...
             // 问题所在
-            var tmp  = 0;
+            var flag  = 0;
+            _currentInstance.flag = 0;
             if (typeof el == 'object' && el.length)
                 for ( var i = 0, ii = el.length; i < ii; i++) {
+                    var tmp = 0;
+                    // console.clear();
+                    // console.log(flag);
                     tmp = _draw(_gel(el[i]), ui, timestamp,null,true);// 4.10
-                    console.clear();
-                    console.log(tmp);
+                    // console.log("repaint.flag");
+                    // console.log(tmp);
+                    if(tmp){
+                        flag = 1;
+                    }
                     // var tmp = _draw(_gel(el[i]), ui, timestamp,null,true);
                 }
             else // ...and single strings.
-                 _draw(_gel(el), ui, timestamp,null,true);
-            _currentInstance.flag = tmp;
-            console.log(tmp);
+            {
+                // console.log("this");
+                _draw(_gel(el), ui, timestamp,null,true);
+            }
+            _currentInstance.flag = flag;
+            // debugger;
+            // console.log("_currentInstance.flag");
+            // console.log(_currentInstance);
             return _currentInstance;
         };
 
@@ -4067,20 +4077,22 @@
                 var fc = floatingConnections[elementId];
                 if (fc)
                 {
-                    console.log("fc");
+
+                    fc.flag = 0;
                     fc.paint({timestamp:timestamp, recalc:false, elId:elementId,type:1});
-                    console.clear();
-                    console.log(fc);
+                    // debugger;
+                    // console.log("fc.falg");
+                    // console.log(fc);
                     flag = fc.flag;
                 }
                 // paint all the connections
                 for (var i = 0; i < connectionsToPaint.length; i++) {
                     // 连线的paint
-                    console.log("connention");
+                    // console.log("connention");
+                    connectionsToPaint[i].flag = 0;
                     connectionsToPaint[i].paint({elId:elementId, timestamp:timestamp, recalc:false, clearEdits:clearEdits,type:1});
-                    if(connectionsToPaint[i].flag == 1){
-                        flag = 1;
-                    }
+;                    // console.log("connectionsToPaint["+i+"].falg");
+                    // console.log(connectionsToPaint[i]);
                 }
                 return flag;
             }
@@ -4612,7 +4624,6 @@
             // 4.10
             drag : function() {
                 // debugger; // 给端点绑定drag事件 连接上
-                flag = 0;
                 if (stopped) {
                     stopped = false;
                     return true;
@@ -4622,9 +4633,12 @@
                 if (placeholder.element) {
                     jsPlumb.CurrentLibrary.setOffset(placeholder.element, _ui);
                     jsPlumb.CurrentLibrary.setOffset(placeholder.element, _ui);
+                    _jsPlumb.flag = 0;
                     _jsPlumb.repaint(placeholder.element, _ui);
-                    console.log(flag);
-                    flag = _jsPlumb.flag;
+                    // console.log("_jsPlumb.flag");
+                    // console.log(_jsPlumb);
+                    // debugger;
+                    flag  = _jsPlumb.flag;
                 }
             },
             stopDrag : function() {
@@ -4765,11 +4779,9 @@
             _updateAnchorClass = function() {
                 jpcl.removeClass(_element, _jsPlumb.endpointAnchorClassPrefix + "_" + _currentAnchorClass);
                 self.removeClass(_jsPlumb.endpointAnchorClassPrefix + "_" + _currentAnchorClass);
-                console.log("old:"+_jsPlumb.endpointAnchorClassPrefix + "_" + _currentAnchorClass);
                 _currentAnchorClass = self.anchor.getCssClass();
                 self.addClass(_jsPlumb.endpointAnchorClassPrefix + "_" + _currentAnchorClass);
                 jpcl.addClass(_element, _jsPlumb.endpointAnchorClassPrefix + "_" + _currentAnchorClass);
-                console.log("new:"+_jsPlumb.endpointAnchorClassPrefix + "_" + _currentAnchorClass);
 
             };
         // 设置一个锚点
@@ -5336,7 +5348,7 @@
             dragOptions[stopEvent] = _jsPlumb.wrap(dragOptions[stopEvent],
                 function() {
                     // dragstop事件
-                    console.log(flag);
+                    debugger;
                     var originalEvent = jpcl.getDropEvent(arguments);
                     _ju.removeWithFunction(params.endpointsByElement[placeholderInfo.id], function(e) {
                         return e.id == floatingEndpoint.id;
@@ -5355,8 +5367,8 @@
                         // existingJpc - Boolean
                         if (existingJpc && jpc.suspendedEndpoint) {
                             debugger;
-                            console.log('判断中已经连接上');
-                            console.log(jpc.suspendedEndpoint);
+                            // console.log('判断中已经连接上');
+                            // console.log(jpc.suspendedEndpoint);
                             // fix for issue35, thanks Sylvain Gizard: when firing the detach event make sure the
                             // floating endpoint has been replaced.
                             // 当分离事件发生时，确保浮动点已经被替换
@@ -5395,7 +5407,8 @@
                     }
 
                     // remove floating endpoint _after_ checking beforeDetach
-                    if(flag){
+                    var conn = jpc.getConnector();
+                    if(conn.flag){
                         _ju.removeElements(jpc.getConnector().getDisplayElements(), self.parent);
                         self.detachFromConnection(jpc);
                     }
@@ -5439,8 +5452,7 @@
                     overEvent = jpcl.dragEvents['over'],
                     outEvent = jpcl.dragEvents['out'],
                     drop = function() {
-                        ;
-                        console.log(flag);
+                        // console.log(flag);
                         self["removeClass"](_jsPlumb.endpointDropAllowedClass);
                         self["removeClass"](_jsPlumb.endpointDropForbiddenClass);
                         var originalEvent = jpcl.getDropEvent(arguments),
@@ -5450,7 +5462,6 @@
                             scope = _att(draggable, "originalScope"),
                             jpc = floatingConnections[id],
                             anchorPosition = self.anchor.type;
-                        console.log(anchorPosition);
 
                         // if this is a drop back where the connection came from, mark it force rettach and
                         // return; the stop handler will reattach. without firing an event.
@@ -5546,7 +5557,6 @@
                                     // connectionsByScope if necessary.
                                     jpc.targetIdPos = anchorPosition;
                                     jpc.sourceIdPos = jpc.endpoints[0].anchor.type;
-                                    console.log(jpc);
                                     _finaliseConnection(jpc, null, originalEvent);
 
                                     commonFunction();
@@ -5794,8 +5804,8 @@
         this.setConnector = function(connectorSpec, doNotRepaint) {
             // 创建连接 // 传入参数：线段类型，是否需要
             // debugger;  // makeConnector 连接上
-            console.log("Connection-params:");
-            console.log(params);
+            // console.log("Connection-params:");
+            // console.log(params);
             if (connector != null) _ju.removeElements(connector.getDisplayElements());
             var connectorArgs = {
                     _jsPlumb:self._jsPlumb,
@@ -6099,7 +6109,8 @@
                     tIdx = swap ? 0 : 1, sIdx = swap ? 1 : 0;
 
                 if (timestamp == null || timestamp != lastPaintedAt) {
-                    var sourceInfo = _jsPlumb.updateOffset( { elId : elId, offset : ui, recalc : recalc, timestamp : timestamp }).o,
+                    debugger;
+                    var sourceInfo = _jsPlumb.updateOffset( { elId : sId, offset : ui, recalc : recalc, timestamp : timestamp }).o,
                         targetInfo = _jsPlumb.updateOffset( { elId : tId, timestamp : timestamp }).o, // update the target if this is a forced repaint. otherwise, only the source has been moved.
                         sE = this.endpoints[sIdx], tE = this.endpoints[tIdx];
 
@@ -6113,7 +6124,10 @@
                         tAnchorP = tE.anchor.getCurrentLocation(tE);
 
                     connector.resetBounds();
-                    // debugger;
+                    // debugger;//hui
+                    // var iknow = [sourceInfo,targetInfo,sAnchorP,tAnchorP];
+                    // console.clear();
+                    // console.log(iknow);
                     connector.compute({
                         sourcePos:sAnchorP,
                         targetPos:tAnchorP,
@@ -6126,6 +6140,12 @@
                         type:params.type
                     });
                     this.flag = connector.flag;
+                    if(connector.flag == 1){
+                        debugger;
+                    }
+                    document.getElementById(elId).setAttribute("flag",connector.flag);
+                    // console.log("connector.flag");
+                    // console.log(connector);
                     var overlayExtents = {
                         minX:Infinity,
                         minY:Infinity,
@@ -6722,9 +6742,7 @@
         };
 
         var _prepareCompute = function(params) {
-            // debugger; 连接上
-            console.log("_prepareCompute的params:");
-            console.log(params);
+            // debugger; //连接上
             self.lineWidth = params.lineWidth;
             var segment = jsPlumbUtil.segment(params.sourcePos, params.targetPos),
                 swapX = params.targetPos[0] < params.sourcePos[0],
@@ -7998,26 +8016,36 @@
         this._compute = function(paintInfo, params) {
             // 计算线段
             // debugger;
-            var height = 20;
+            var height = 30;
             var flag1 = 0;
             var flag2 = 0;
+            var comArr = [params.sourceInfo,params.targetInfo,params.sourcePos,params.targetPos];
             // console.clear();
-            // console.log(params);
-            if(params.sourceInfo.left<=params.sourcePos[0]&&
-                params.sourcePos[0]<params.targetInfo.left&&
-                params.targetInfo.left<=params.targetPos[0]){
-                console.log("1");
-                flag1 = 1;
-            }else if(params.sourceInfo.left>=params.sourcePos[0]&&
-                params.sourcePos[0]>params.targetInfo.left&&
-                params.targetInfo.left>=params.targetPos[0]){
-                console.log("2");
-                flag1 = 1;
+            // console.log(comArr);
+            debugger;
+            var num1 = comArr[0].left-comArr[2][0];
+            var num2 = comArr[3][0]-comArr[1].right;
+            var num3 = comArr[2][0] - comArr[3][0];
+            console.log(num1);
+            console.log(num2);
+            console.log(num3);
+            if(comArr[0].left<comArr[2][0]
+                &&comArr[3][0]<=comArr[1].right
+                &&comArr[2][0]<comArr[3][0]){
+                console.log("s在t左边");
+                flag1 = 1
+            }else if(comArr[0].right>comArr[2][0]
+                &&comArr[3][0]>=comArr[1].left
+                &&comArr[2][0]>comArr[3][0]){
+                console.log("s在t右边");
+                flag1 = 1
             }
-            var tmp = params.targetPos[1] - params.sourcePos[1];
-            var dis  = tmp>0?tmp:-tmp;
-            if(!flag1&&dis<height&&params.type){
-                flag2 = 1;
+            var tmp = comArr[3][1] - comArr[2][1];
+            var temp = comArr[3][0] - comArr[2][0];
+            if(Math.abs(tmp)<height&&params.type){
+                if(!flag1 || Math.abs(temp)<30){
+                    flag2 = 1;
+                }
             }
             // if(!flag2){
                 if (params.clearEdits)
@@ -8148,12 +8176,9 @@
                         }
                     },
                     p = lineCalculators[paintInfo.anchorOrientation](paintInfo.sourceAxis);
-                // console.log(paintInfo.anchorOrientation);
-                // console.log(paintInfo.sourceAxis);
                 if (p) {
                     for (var i = 0; i < p.length; i++) {
                         addSegment(segments, p[i][0], p[i][1]);
-                        console.log(p[i][0]);
                     }
                 }
 
@@ -8162,11 +8187,9 @@
                 // end stub
                 addSegment(segments, paintInfo.tx, paintInfo.ty);
                 // ;
-                // console.log(segments);
                 writeSegments(segments, paintInfo);
             // }
            self.flag = flag2;
-            // console.log(self.flag);
         };
 
         this.getPath = function() {
@@ -8943,8 +8966,8 @@
 
                 renderer.paint.apply(this, arguments);
                 // //debugger; //3
-                console.log(wh[0]);
-                console.log(wh[1]);
+                // console.log(wh[0]);
+                // console.log(wh[1]);
                 _attr(self.svg, {
                     "style":p,
                     "width": wh[0],
