@@ -105,17 +105,14 @@ body{
 .draggable{
 	float: left;
   	width: 40px;
-  	height: 20px;
+  	height: 40px;
   	margin-top: 3px;
   	margin-bottom:10px;
-  	background: rgb(255,255,255);
+  	/*background: rgb(255,255,255);*/
   	text-align: center;
-    border:2px solid rgb(0,0,0);
+    /*border:2px solid rgb(0,0,0);*/
     font-size: 14px;
-    padding-top: 5px;
-    padding-bottom: 5px;
     margin-right: 10px;
-    font-size: 12px;
  }
 
 .draggable:hover{
@@ -130,7 +127,9 @@ body{
 .drop-active{
   	background: rgb(238,238,238);
 }
-
+.stroke{
+    stroke:#000; stroke-width:2px;fill:none;
+}
 /*圆角矩形*/
 .roundedRect{
 	border-radius: 8px;
@@ -138,11 +137,8 @@ body{
 
 /*圆*/
 .circle{
-	height: 30px;
-	width: 30px;
-	border-radius: 15px;
-	padding: 0px;
-	
+	height: 40px;
+	width: 42px;
 }
 
 /*菱形*/
@@ -166,11 +162,13 @@ body{
 }
 
 /*以下是创建新部件的时候改变的属性(和右侧工具栏的大小不同)*/
-
+.svgForDrag{
+    width: 100%;
+    height: 100%;
+}
 .new-circle{
-	width: 30px;
-	height: 30px;
-	border-radius: 30px;
+	width: 42px;
+	height: 40px;
 }
 
 .new-rhombus{

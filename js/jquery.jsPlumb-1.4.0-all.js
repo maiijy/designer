@@ -93,7 +93,7 @@
         populate : function(model, values) {
             // for a string, see if it has parameter matches, and if so, try to make the substitutions.
             var getValue = function(fromString) {
-                debugger;
+                // debugger;
                     var matches = fromString.match(/(\${.*?})/g);
                     if (matches != null) {
                         for (var i = 0; i < matches.length; i++) {
@@ -1425,7 +1425,6 @@
              * @param timestamp timestamp for this paint cycle. used to speed things up a little by cutting down the amount of offset calculations we do.
              */
             _draw = function(element, ui, timestamp, clearEdits,able) {
-                var tmp = 0;
                 // TODO is it correct to filter by headless at this top level? how would a headless adapter ever repaint?
                 if (!jsPlumbAdapter.headless && !_suspendDrawing) {
                     // debugger; 连接上
@@ -1435,8 +1434,7 @@
 
                     if (timestamp == null) timestamp = _timestamp();
                     // 重新渲染当前锚点等
-                    // debugger;//huia
-                    tmp =_currentInstance.anchorManager.redraw(id, ui, timestamp, null, clearEdits);
+                    _currentInstance.anchorManager.redraw(id, ui, timestamp, null, clearEdits);
                     // console.log("_draw.flag");
                     // console.log(tmp);
                     if (repaintEls) {
@@ -1512,7 +1510,7 @@
                                 var ui = jpcl.getUIPosition(arguments, _currentInstance.getZoom());
                                 var obj = document.getElementById(element[0].id);
                                 flag = obj.getAttribute('flag');
-                                debugger;
+                                // debugger;
                                 if(flag ==='1'){
                                     _draw(element, originalUI,null,null,false);
                                     this.style.left = originalUI.left+"px";
@@ -1531,8 +1529,6 @@
                             options.disabled = draggable == null ? false : !draggable;
                             jpcl.initDraggable(element, options, false, _currentInstance);
                             _currentInstance.dragManager.register(element);
-                            debugger;
-
                         }
                     }
                 }
@@ -1651,7 +1647,7 @@
                         params["parent"] = params.source.parent;
                     else params["parent"] = parent(params.source);
                 }
-
+                // debugger;
                 params["_jsPlumb"] = _currentInstance;
                 params.newConnection = _newConnection;
                 params.newEndpoint = _newEndpoint;
@@ -1675,7 +1671,6 @@
                 // add to list of connections (by scope).
                 if (!jpc.suspendedEndpoint)
                 // 增加到备份模型中
-                // debugger;
                     _addToList(connectionsByScope, jpc.scope, jpc);
 
                 // always inform the anchor manager
@@ -2021,8 +2016,9 @@
         this.hasClass = function(el, clazz) { return jsPlumb.CurrentLibrary.hasClass(el, clazz); };
         //		el = id ; params = 点；reference = 样式
         this.addEndpoint = function(el, params, referenceParams) {
-            debugger;
+            console.log(referenceParams.connector[0]);
             referenceParams = referenceParams || {};
+            // 传入参数中包含了连线类型，后改为自动选择适合的连线
             var p = jsPlumb.extend({}, referenceParams);
             jsPlumb.extend(p, params);
             p.endpoint = p.endpoint || _currentInstance.Defaults.Endpoint || jsPlumb.Defaults.Endpoint;
@@ -2751,7 +2747,7 @@
                 var dropOptions = jsPlumb.extend({}, p.dropOptions || {}),
                     _drop = function() {
                         // 先做connection的端点使用
-                        debugger;
+                        // debugger;
                         var originalEvent = jsPlumb.CurrentLibrary.getDropEvent(arguments),
                             targetCount = _currentInstance.select({target:elid}).length;
 
@@ -2872,7 +2868,6 @@
 
                         }
                     };
-                debugger;
                 var dropEvent = jpcl.dragEvents['drop'];
                 dropOptions["scope"] = dropOptions["scope"] || targetScope;
                 dropOptions[dropEvent] = _wrap(dropOptions[dropEvent], _drop);
@@ -2937,7 +2932,7 @@
 
         // see api docs
         this.makeSource = function(el, params, referenceParams) {
-            debugger;
+            // debugger;
             var p = jsPlumb.extend({}, referenceParams);
             jsPlumb.extend(p, params);
             _setEndpointPaintStylesAndAnchor(p, 0);
@@ -2976,7 +2971,6 @@
                     });
 
                     dragOptions[stopEvent] = _wrap(dragOptions[stopEvent], function() {
-                        debugger;
                         if (existingStop) existingStop.apply(this, arguments);
 
                         //_currentlyDown = false;
@@ -2985,7 +2979,7 @@
                         if (ep.connections.length == 0)
                             _currentInstance.deleteEndpoint(ep);
                         else {
-                            debugger;//端点和连线消失
+                            //端点和连线消失
                             jpcl.unbind(ep.canvas, "mousedown");
 
                             // reset the anchor to the anchor that was initially provided. the one we were using to drag
@@ -3268,19 +3262,13 @@
             if (typeof el == 'object' && el.length)
                 for ( var i = 0, ii = el.length; i < ii; i++) {
                     var tmp = 0;
-                    // console.clear();
-                    // console.log(flag);
                     tmp = _draw(_gel(el[i]), ui, timestamp,null,true);// 4.10
-                    // console.log("repaint.flag");
-                    // console.log(tmp);
                     if(tmp){
                         flag = 1;
                     }
-                    // var tmp = _draw(_gel(el[i]), ui, timestamp,null,true);
                 }
             else // ...and single strings.
             {
-                // console.log("this");
                 _draw(_gel(el), ui, timestamp,null,true);
             }
             _currentInstance.flag = flag;
@@ -3930,7 +3918,7 @@
             // store this for next time.
             endpoint._continuousAnchorEdge = edgeId;
         };
-        //
+        //hui
         this.redraw = function(elementId, ui, timestamp, offsetToUI, clearEdits) {
             if (!jsPlumbInstance.isSuspendDrawing()) {
                 // get all the endpoints for this element
@@ -4077,18 +4065,13 @@
                 var fc = floatingConnections[elementId];
                 if (fc)
                 {
-
                     fc.flag = 0;
                     fc.paint({timestamp:timestamp, recalc:false, elId:elementId,type:1});
-                    // debugger;
-                    // console.log("fc.falg");
-                    // console.log(fc);
                     flag = fc.flag;
                 }
                 // paint all the connections
                 for (var i = 0; i < connectionsToPaint.length; i++) {
                     // 连线的paint
-                    // console.log("connention");
                     connectionsToPaint[i].flag = 0;
                     connectionsToPaint[i].paint({elId:elementId, timestamp:timestamp, recalc:false, clearEdits:clearEdits,type:1});
 ;                    // console.log("connectionsToPaint["+i+"].falg");
@@ -4573,7 +4556,7 @@
                     ]);
                 },
                 "Path":function(params) {
-                    debugger;
+                    // debugger;
                     var points = params.points, p = [], tl = 0;
                     for (var i = 0; i < points.length - 1; i++) {
                         var l = Math.sqrt(Math.pow(points[i][2] - points[i][0]) + Math.pow(points[i][3] - points[i][1]));
@@ -4635,9 +4618,6 @@
                     jsPlumb.CurrentLibrary.setOffset(placeholder.element, _ui);
                     _jsPlumb.flag = 0;
                     _jsPlumb.repaint(placeholder.element, _ui);
-                    // console.log("_jsPlumb.flag");
-                    // console.log(_jsPlumb);
-                    // debugger;
                     flag  = _jsPlumb.flag;
                 }
             },
@@ -4912,6 +4892,7 @@
 
         this.addConnection = function(connection) {
             self.connections.push(connection);
+            console.log(self);
             self[(self.connections.length > 0 ? "add" : "remove") + "Class"](_jsPlumb.endpointConnectedClass);
             self[(self.isFull() ? "add" : "remove") + "Class"](_jsPlumb.endpointFullClass);
         };
@@ -5118,7 +5099,6 @@
         };
         // jsPlumb.Endpoint的paint 4.2 重新计算了anchor和endpoint的距离等
         this.paint = function(params) {
-            // debugger;
             params = params || {};
             var timestamp = params.timestamp, recalc = !(params.recalc === false);
             if (!timestamp || self.timestamp !== timestamp) {
@@ -5144,12 +5124,9 @@
                             anchorParams.twh = oWH;
                             anchorParams.tElement = c.endpoints[oIdx];
                         }
-                        // debugger; 3.29
                         ap = self.anchor.compute(anchorParams);
                     }
-                    // debugger; 3.29
                     _endpoint.compute(ap, self.anchor.getOrientation(self), self.paintStyleInUse, connectorPaintStyle || self.paintStyleInUse);
-                    // //debugger; //2
                     _endpoint.paint(self.paintStyleInUse, self.anchor);
                     self.timestamp = timestamp;
 
@@ -5252,6 +5229,7 @@
                     self.setHover(false, false);
                     // create a connection. one end is this endpoint, the other is a floating endpoint.
                     // 创建一条连线，一端是起始点，另一端是浮动点
+                    // hui
                     jpc = _newConnection({
                         sourceEndpoint : self,
                         targetEndpoint : floatingEndpoint,
@@ -5348,7 +5326,7 @@
             dragOptions[stopEvent] = _jsPlumb.wrap(dragOptions[stopEvent],
                 function() {
                     // dragstop事件
-                    debugger;
+                    // debugger;
                     var originalEvent = jpcl.getDropEvent(arguments);
                     _ju.removeWithFunction(params.endpointsByElement[placeholderInfo.id], function(e) {
                         return e.id == floatingEndpoint.id;
@@ -5360,15 +5338,12 @@
 
                     // commented out pending decision on drag proxy stuff.
                     //	self.setPaintStyle(originalPaintStyle); // reset to original; may have been changed by drag proxy.
-                    debugger;
                     var judge = jpc.endpoints[idx] == floatingEndpoint?1:0;
                     if (jpc.endpoints[idx] == floatingEndpoint) {
                         // if the connection was an existing one:
                         // existingJpc - Boolean
                         if (existingJpc && jpc.suspendedEndpoint) {
-                            debugger;
                             // console.log('判断中已经连接上');
-                            // console.log(jpc.suspendedEndpoint);
                             // fix for issue35, thanks Sylvain Gizard: when firing the detach event make sure the
                             // floating endpoint has been replaced.
                             // 当分离事件发生时，确保浮动点已经被替换
@@ -5398,9 +5373,6 @@
                             // i wonder if this one should post an event though.  maybe this is good like this.
                             // 连接到浮动点时，可以取消这段链接
                             // 取消连接，重写
-                            // ;
-                            debugger;
-                            // debugger for next step
                             _ju.removeElements(jpc.getConnector().getDisplayElements(), self.parent);
                             self.detachFromConnection(jpc);
                         }
@@ -5419,7 +5391,6 @@
                     self.canvas.style.visibility = "visible";
 
                     self.anchor.locked = false;
-                    // debugger for next step
                     self.paint({recalc:false});
 
                     jpc.removeClass(_jsPlumb.draggingClass);
@@ -5523,7 +5494,6 @@
                                 };
                                 //   保存可用连接
                                 var continueFunction = function() {
-                                    // debugger;
                                     // remove this jpc from the current endpoint
                                     jpc.endpoints[idx].detachFromConnection(jpc);
                                     if (jpc.suspendedEndpoint) jpc.suspendedEndpoint.detachFromConnection(jpc);
@@ -5563,7 +5533,6 @@
                                 };
 
                                 var dontContinueFunction = function() {
-                                    // debugger;
                                     // otherwise just put it back on the endpoint it was on before the drag.
                                     if (jpc.suspendedEndpoint) {
                                         jpc.endpoints[idx] = jpc.suspendedEndpoint;
@@ -5592,7 +5561,6 @@
                                 // have a beforeDrop condition (although, secretly, under the hood all Endpoints and
                                 // the Connection have them, because they are on jsPlumbUIComponent.  shhh!), because
                                 // it only makes sense to have it on a target endpoint.
-                                // debugger;
                                 _doContinue = _doContinue && self.isDropAllowed(jpc.sourceId, jpc.targetId, jpc.scope, jpc, self);
 
                                 if (_doContinue) {
@@ -5803,9 +5771,6 @@
 
         this.setConnector = function(connectorSpec, doNotRepaint) {
             // 创建连接 // 传入参数：线段类型，是否需要
-            // debugger;  // makeConnector 连接上
-            // console.log("Connection-params:");
-            // console.log(params);
             if (connector != null) _ju.removeElements(connector.getDisplayElements());
             var connectorArgs = {
                     _jsPlumb:self._jsPlumb,
@@ -5927,7 +5892,6 @@
                 }
                 return e;
             };
-        // debugger; 连接上
         var eS = prepareEndpoint(params.sourceEndpoint, 0, params, self.source,
             self.sourceId, params.paintStyle, params.hoverPaintStyle);
         if (eS) _ju.addToList(params.endpointsByElement, this.sourceId, eS);
@@ -6098,7 +6062,6 @@
         var lastPaintedAt = null;
         // 连线的paint 3.29
         this.paint = function(params) {
-            // debugger;
             if (visible) {
 
                 params = params || {};
@@ -6109,7 +6072,6 @@
                     tIdx = swap ? 0 : 1, sIdx = swap ? 1 : 0;
 
                 if (timestamp == null || timestamp != lastPaintedAt) {
-                    debugger;
                     var sourceInfo = _jsPlumb.updateOffset( { elId : sId, offset : ui, recalc : recalc, timestamp : timestamp }).o,
                         targetInfo = _jsPlumb.updateOffset( { elId : tId, timestamp : timestamp }).o, // update the target if this is a forced repaint. otherwise, only the source has been moved.
                         sE = this.endpoints[sIdx], tE = this.endpoints[tIdx];
@@ -6122,12 +6084,24 @@
 
                     var sAnchorP = sE.anchor.getCurrentLocation(sE),
                         tAnchorP = tE.anchor.getCurrentLocation(tE);
-
+                    var distance = sAnchorP[1] - tAnchorP[1];
+                    if(!Math.abs(distance)){
+                        // if(elId === tId){
+                        //     tAnchorP[1] = sAnchorP[1];
+                        //     debugger;
+                        //     document.getElementById(tId).style.top -= distance;
+                        //     targetInfo.top -= distance;
+                        // }else{
+                        //     sAnchorP[1] = tAnchorP[1];
+                        //     debugger;
+                        //     document.getElementById(sId).style.top -= distance;
+                        //     sourceInfo.top -= distance;
+                        // }
+                        // //
+                        // distance>0?tAnchorP[1] = sAnchorP[1]:sAnchorP[1] = tAnchorP[1];
+                        connector.type = 'Straight';
+                    }
                     connector.resetBounds();
-                    // debugger;//hui
-                    // var iknow = [sourceInfo,targetInfo,sAnchorP,tAnchorP];
-                    // console.clear();
-                    // console.log(iknow);
                     connector.compute({
                         sourcePos:sAnchorP,
                         targetPos:tAnchorP,
@@ -6140,9 +6114,7 @@
                         type:params.type
                     });
                     this.flag = connector.flag;
-                    if(connector.flag == 1){
-                        debugger;
-                    }
+
                     document.getElementById(elId).setAttribute("flag",connector.flag);
                     // console.log("connector.flag");
                     // console.log(connector);
@@ -7920,7 +7892,6 @@
              * helper method to add a segment.
              */
             addSegment = function(segments, x, y, sx, sy) {
-                // debugger;
                 // if segment would have length zero, dont add it.
                 if (sx == lastx && sy == lasty) return;
                 if (x == lastx && y == lasty) return;
@@ -7957,10 +7928,10 @@
                     if (cornerRadius > 0 && current[4] != next[4]) {
                         var radiusToUse = Math.min(cornerRadius, segLength(current), segLength(next));
                         // right angle. adjust current segment's end point, and next segment's start point.
-                        current[2] -= current[5] * radiusToUse;
-                        current[3] -= current[6] * radiusToUse;
-                        next[0] += next[5] * radiusToUse;
-                        next[1] += next[6] * radiusToUse;
+                        // current[2] -= current[5] * radiusToUse;
+                        // current[3] -= current[6] * radiusToUse;
+                        // next[0] += next[5] * radiusToUse;
+                        // next[1] += next[6] * radiusToUse;
                         var ac = (current[6] == next[5] && next[5] == 1) ||
                             ((current[6] == next[5] && next[5] == 0) && current[5] != next[6]) ||
                             (current[6] == next[5] && next[5] == -1),
@@ -7974,16 +7945,16 @@
                             x1:current[0], y1:current[1], x2:current[2], y2:current[3]
                         });
 
-                        _super.addSegment("Arc", {
-                            r:radiusToUse,
-                            x1:current[2],
-                            y1:current[3],
-                            x2:next[0],
-                            y2:next[1],
-                            cx:cx,
-                            cy:cy,
-                            ac:ac
-                        });
+                        // _super.addSegment("Arc", {
+                        //     r:radiusToUse,
+                        //     x1:current[2],
+                        //     y1:current[3],
+                        //     x2:next[0],
+                        //     y2:next[1],
+                        //     cx:cx,
+                        //     cy:cy,
+                        //     ac:ac
+                        // });
                     }
                     else {
                         _super.addSegment("Straight", {
@@ -8015,29 +7986,17 @@
 
         this._compute = function(paintInfo, params) {
             // 计算线段
-            // debugger;
             var height = 30;
             var flag1 = 0;
             var flag2 = 0;
             var comArr = [params.sourceInfo,params.targetInfo,params.sourcePos,params.targetPos];
-            // console.clear();
-            // console.log(comArr);
-            debugger;
-            var num1 = comArr[0].left-comArr[2][0];
-            var num2 = comArr[3][0]-comArr[1].right;
-            var num3 = comArr[2][0] - comArr[3][0];
-            console.log(num1);
-            console.log(num2);
-            console.log(num3);
             if(comArr[0].left<comArr[2][0]
                 &&comArr[3][0]<=comArr[1].right
                 &&comArr[2][0]<comArr[3][0]){
-                console.log("s在t左边");
                 flag1 = 1
             }else if(comArr[0].right>comArr[2][0]
                 &&comArr[3][0]>=comArr[1].left
                 &&comArr[2][0]>comArr[3][0]){
-                console.log("s在t右边");
                 flag1 = 1
             }
             var tmp = comArr[3][1] - comArr[2][1];
@@ -8216,7 +8175,7 @@
 
         this.setPath = function(path) {
             // 设置路径
-            debugger;
+            // debugger;
             userSuppliedSegments = [];
             // 遍历参数
             for (var i = 0; i < path.length; i++) {
@@ -8814,6 +8773,7 @@
             node.setAttribute(FILL, style.fillStyle ? jsPlumbUtil.convertStyle(style.fillStyle, true) : NONE);
             node.setAttribute(STROKE, style.strokeStyle ? jsPlumbUtil.convertStyle(style.strokeStyle, true) : NONE);
             if (style.lineWidth) {
+                debugger;
                 node.setAttribute(STROKE_WIDTH, style.lineWidth);
             }
 
@@ -8965,9 +8925,6 @@
                     p = _pos([ xy[0], xy[1] ]);
 
                 renderer.paint.apply(this, arguments);
-                // //debugger; //3
-                // console.log(wh[0]);
-                // console.log(wh[1]);
                 _attr(self.svg, {
                     "style":p,
                     "width": wh[0],
@@ -8985,7 +8942,6 @@
 	 * Base class for SVG connectors.
 	 */
     var SvgConnector = jsPlumb.ConnectorRenderers.svg = function(params) {
-        // debugger; 连接上
         var self = this,
             _super = SvgComponent.apply(this, [ {
                 cssClass:params["_jsPlumb"].connectorClass,
@@ -9003,7 +8959,6 @@
             // create path from segments.
             // 为线段创建path路径,s所以重绘路径主要是改变segments
             for (var i = 0; i < segments.length; i++) {
-                // debugger; 连接上
                 p += jsPlumb.Segments.svg.SegmentRenderer.getPath(segments[i]);
                 p += " ";
             }
@@ -9022,7 +8977,7 @@
                     outlineStrokeWidth = style.lineWidth + (2 * outlineWidth),
                     outlineStyle = jsPlumb.CurrentLibrary.extend({}, style);
                 outlineStyle.strokeStyle = jsPlumbUtil.convertStyle(style.outlineColor);
-                outlineStyle.lineWidth = outlineStrokeWidth;
+                // outlineStyle.lineWidth = outlineStrokeWidth;
 
                 if (self.bgPath == null) {
                     self.bgPath = _node("path", a);
@@ -9184,7 +9139,6 @@
     jsPlumb.Overlays.svg.Custom = jsPlumb.Overlays.Custom;
 
     var AbstractSvgArrowOverlay = function(superclass, originalArgs) {
-        debugger;
         superclass.apply(this, originalArgs);
         jsPlumb.jsPlumbUIComponent.apply(this, originalArgs);
         this.isAppendedAtTopLevel = false;
@@ -9253,7 +9207,6 @@
         jsPlumb.Overlays.GuideLines.apply(this, arguments);
         this.paint = function(params, containerExtents) {
             if (path == null) {
-                // //debugger;
                 path = _node("path");
                 params.connector.svg.appendChild(path);
                 self.attachListeners(path, params.connector);
@@ -9529,8 +9482,6 @@
          * see getDragObject as well
          */
         getUIPosition : function(eventArgs, zoom) {
-            // eventArgs[0]:
-            // debugger;
             zoom = zoom || 1;
             // this code is a workaround for the case that the element being dragged has a margin set on it. jquery UI passes
             // in the wrong offset if the element has a margin (it doesn't take the margin into account).  the getBoundingClientRect

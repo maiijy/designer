@@ -8,19 +8,58 @@
 
 <body>
   <div class="chart-content">
-    <div id="chart-container" class="chart-design droppable"></div>
-    <div class="chart-right-panel">      <div class="chart-right-list">
+    <div id="chart-container" class="chart-design droppable">
+        <div class="side-border"></div>
+    </div>
+    <div class="chart-right-panel">
+        <div class="chart-right-list">
         <div class="chart-list chart-object">
-          <h4>图形</h4>
+          <h4>工具栏</h4>
           <div class="list-button">
               <button id="export">保存</button>
               <button id="import">导入</button>
           </div>
           <div class="list-content">
               <div class="area">
-                  <div class="draggable" id="rect"></div>
-                  <div class="draggable roundedRect" id="roundedRect"></div>
-                  <div class="draggable circle" id="circle"></div>
+                  <div class="draggable" id="rect">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="svgForDrag">
+                          <path d="M0,20 l15,0 M15,10 l0 20, M25,10 l0,20 M25,20 l15 0 Z"
+                               class="stroke"/>
+                      </svg>
+                  </div>
+                  <div class="draggable roundedRect" id="roundedRect">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="svgForDrag">
+                          <path d="M0,20 l15,0 M15,10 l0 20, M25,10 l0,20 M25,20 l15 0 M30 10 L 10 30 Z"
+                                class="stroke"/>
+                      </svg>
+                  </div>
+                  <div class="draggable circle" id="circle">
+                      <svg version="1.1" xmlns="http://www.w3.org/2000/svg" class="svgForDrag">
+                          <path d="M0,20 l10,0"
+                                class="stroke"/>
+                          <ellipse cx="25" cy="20" rx="15" ry="10"  style="fill:none;stroke:black;stroke-width:2"></ellipse>
+                      </svg>
+                  </div>
+                  <div class="draggable circle" id="parentheses">
+                      <svg xmlns="http://www.w3.org/2000/svg">
+                          <path d="M0,20 l15,0 M20,10 A5,10 0 0,0 20 30 M30,10 A5 10 0 0,1 30 30"
+                                class="stroke"/>
+                      </svg>
+                  </div>
+                  <!--<div class="draggable circle" id="circle">-->
+                      <!--<svg xmlns="http://www.w3.org/2000/svg">-->
+                          <!--<path d="M0,20 l15,0 M20,10 A5,10 0 0,0 20 30 M30,10 A5 10 0 0,1 30 30"-->
+                                <!--class="stroke"/>-->
+                          <!--<text x="20" y="25" style="text-anchor: start; font-size: 14px">1</text>-->
+                      <!--</svg>-->
+                  <!--</div>-->
+                  <!--<div class="draggable circle" id="circle">-->
+                      <!--<svg xmlns="http://www.w3.org/2000/svg">-->
+                          <!--<path d="M0,20 l15,0 M20,10 A5,10 0 0,0 20 30 M30,10 A5 10 0 0,1 30 30"-->
+                                <!--class="stroke"/>-->
+                          <!--<text x="20" y="25" style="text-anchor: start; font-size: 14px">0</text>-->
+                      <!--</svg>-->
+                  <!--</div>-->
                   <!--<div class="draggable" id="rhombus"></div>-->
 
                 <div id="line-select-div">

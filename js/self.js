@@ -52,7 +52,7 @@ sessionStorage['midIsOccupied']='not';
 
 //根蒂根基连接线样式
 var connectorPaintStyle = {
-    lineWidth: 1,
+    lineWidth: 2,
     strokeStyle: "rgb(0,0,0)",
     joinstyle: "round",
     outlineColor: "rgb(0,0,0)",
@@ -61,22 +61,23 @@ var connectorPaintStyle = {
 
 // 鼠标悬浮在连接线上的样式
 var connectorHoverStyle = {
-    lineWidth: 1,
+    lineWidth: 2,
     strokeStyle: "#000000",
     outlineWidth: 0,
     outlineColor: "rgb(0,0,0)"
 };
 
 var hollowCircle = {
-    endpoint: ["Dot", { radius: 1 }],  //端点的外形
+    endpoint: ["Dot", { radius: 0.5 }],  //端点的外形
     connectorStyle: connectorPaintStyle,//连接线的色彩,大小样式
     connectorHoverStyle: connectorHoverStyle,
     paintStyle: {
         strokeStyle: "rgb(0,0,0)",
         fillStyle: "rgb(0,0,0)",
         opacity: 0.5,
-        radius: 1,
-        lineWidth: 1
+        // radius: 1,
+        lineWidth: 2,
+        outlineWidth:0
     },//端点的色彩样式
     //anchor: "AutoDefault",
     isSource: true,    //是否可以拖动(作为连线出发点)
@@ -340,8 +341,11 @@ $(document).ready(function(){
 
             //用jsPlumb添加锚点
             // jsPlumb.addEndpoint(trueId,{anchors: "TopCenter"},hollowCircle);
-            jsPlumb.addEndpoint(trueId,{anchors: "RightMiddle"},hollowCircle);
             // jsPlumb.addEndpoint(trueId,{anchors: "BottomCenter"},hollowCircle);
+            var onePointArr = ['parentheses','circle'];
+            if(onePointArr.indexOf(name)===-1){
+                jsPlumb.addEndpoint(trueId,{anchors: "RightMiddle"},hollowCircle);
+            }
             jsPlumb.addEndpoint(trueId,{anchors: "LeftMiddle"},hollowCircle);
 
             jsPlumb.draggable(trueId);
@@ -693,7 +697,8 @@ $(document).ready(function(){
                     fillStyle: "rgb(0,0,0)",
                     opacity: 0.5,
                     radius: 1,
-                    lineWidth: 1
+                    lineWidth: 2,
+                    outlineWidth:0
                 },//端点的色彩样式
                 isSource: true,    //是否可以拖动(作为连线出发点)
                 connector: ["Flowchart", { curviness:100 } ],//设置连线为贝塞尔曲线
