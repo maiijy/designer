@@ -4616,9 +4616,7 @@
                 if (placeholder.element) {
                     jsPlumb.CurrentLibrary.setOffset(placeholder.element, _ui);
                     jsPlumb.CurrentLibrary.setOffset(placeholder.element, _ui);
-                    _jsPlumb.flag = 0;
                     _jsPlumb.repaint(placeholder.element, _ui);
-                    flag  = _jsPlumb.flag;
                 }
             },
             stopDrag : function() {
@@ -4785,7 +4783,10 @@
         self.setAnchor(anchorParamsToUse, true);
 
         // ANCHOR MANAGER
-        if (!params._transient) // in place copies, for example, are transient.  they will never need to be retrieved during a paint cycle, because they dont move, and then they are deleted.
+        if (!params._transient)
+            // in place copies, for example, are transient.
+            // they will never need to be retrieved during a paint cycle, because they dont move,
+            // and then they are deleted.
             _jsPlumb.anchorManager.add(self, _elementId);
 
         var _endpoint = null, originalEndpoint = null;
@@ -4892,7 +4893,6 @@
 
         this.addConnection = function(connection) {
             self.connections.push(connection);
-            console.log(self);
             self[(self.connections.length > 0 ? "add" : "remove") + "Class"](_jsPlumb.endpointConnectedClass);
             self[(self.isFull() ? "add" : "remove") + "Class"](_jsPlumb.endpointFullClass);
         };
@@ -5326,7 +5326,7 @@
             dragOptions[stopEvent] = _jsPlumb.wrap(dragOptions[stopEvent],
                 function() {
                     // dragstop事件
-                    // debugger;
+                    debugger;
                     var originalEvent = jpcl.getDropEvent(arguments);
                     _ju.removeWithFunction(params.endpointsByElement[placeholderInfo.id], function(e) {
                         return e.id == floatingEndpoint.id;
@@ -7989,11 +7989,15 @@
             var height = 30;
             var flag1 = 0;
             var flag2 = 0;
+            console.log(paintInfo);
             var comArr = [params.sourceInfo,params.targetInfo,params.sourcePos,params.targetPos];
-            if(comArr[0].left<comArr[2][0]
-                &&comArr[3][0]<=comArr[1].right
+            if(comArr[3][0]<=comArr[1].right
                 &&comArr[2][0]<comArr[3][0]){
-                flag1 = 1
+                if(comArr[0].left<comArr[2][0]){
+                    flag1 = 1;
+                }else if(comArr[2][0]===2){
+                    flag1 = 1;
+                }
             }else if(comArr[0].right>comArr[2][0]
                 &&comArr[3][0]>=comArr[1].left
                 &&comArr[2][0]>comArr[3][0]){
@@ -8024,6 +8028,7 @@
 
                 // add the start stub segment.
                 addSegment(segments, paintInfo.startStubX, paintInfo.startStubY, paintInfo.sx, paintInfo.sy);
+                console.log(paintInfo);
 
                 var findClearedLine = function(start, mult, anchorPos, dimension) {
                         return start + (mult * (( 1 - anchorPos) * dimension) + _super.maxStub);
@@ -8773,7 +8778,7 @@
             node.setAttribute(FILL, style.fillStyle ? jsPlumbUtil.convertStyle(style.fillStyle, true) : NONE);
             node.setAttribute(STROKE, style.strokeStyle ? jsPlumbUtil.convertStyle(style.strokeStyle, true) : NONE);
             if (style.lineWidth) {
-                debugger;
+                // debugger;
                 node.setAttribute(STROKE_WIDTH, style.lineWidth);
             }
 

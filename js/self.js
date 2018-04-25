@@ -1,55 +1,3 @@
-    adjustDesignWidth();
-//标识右侧工具栏是否已显示,默认显示
-sessionStorage['rightToolsIsDisplay']=true;
-
-//标识当前点击的流程图框,默认为none
-sessionStorage['currentChartSelected']='none';
-
-//栈,记录用户操作的先后顺序,用来进行撤销操作,数据结构为JSON,其中的copy用来复制部件
-//是个二维栈,包括新增/删除/粘贴操作
-var chartOperationStack=new Array;
-chartOperationStack['add']=[];
-chartOperationStack['delete']=[];
-chartOperationStack['paste']=[];
-chartOperationStack['copy']=[];
-
-//记录用户具体操作,有copy,add,delete,paste
-var chartRareOperationStack=new Array;
-
-//记录当前流程框的数量
-sessionStorage['currentChartAmount']=0;
-
-//指定流程图设计区域宽度高度
-function adjustDesignWidth(){
-    var designWidth=0;
-    var domWidth=$(window).width();
-    designWidth=domWidth-$('.chart-right-panel').width();
-    $('.chart-design').css('width',designWidth-4);
-}
-
-//设置当前部件top,left
-function setChartLocation(top,left){
-    $('#lo-x-display').val(top);
-    $('#lo-y-display').val(left);
-}
-
-//设置当前部件的width和height
-function setChartSize(width,height){
-    alert("setChartSize");
-    $('#chart-width-display').val(width);
-    $('#chart-height-display').val(height);
-}
-
-//****************负责属性面板的内容设置*****************
-
-//*********************************jsPlumb基础信息配置区域*********************************{
-
-//流程图ID唯一标识,用来防止重复,每次新建一个部件时此值必须加1,否则会出现异常
-sessionStorage['idIndex']=0;
-
-//检测设计区域中间区域是否被占据,页面刚加载时默认没有被占据
-sessionStorage['midIsOccupied']='not';
-
 //根蒂根基连接线样式
 var connectorPaintStyle = {
     lineWidth: 2,
@@ -87,6 +35,59 @@ var hollowCircle = {
     maxConnections: -1,    // 设置连接点最多可以连接几条线
     // connectorOverlays: [["Arrow", { width: 10, length: 10, location: 1 }]]
 };
+
+adjustDesignWidth();
+//标识右侧工具栏是否已显示,默认显示
+sessionStorage['rightToolsIsDisplay']=true;
+
+//标识当前点击的流程图框,默认为none
+sessionStorage['currentChartSelected']='none';
+
+//栈,记录用户操作的先后顺序,用来进行撤销操作,数据结构为JSON,其中的copy用来复制部件
+//是个二维栈,包括新增/删除/粘贴操作
+var chartOperationStack=new Array;
+chartOperationStack['add']=[];
+chartOperationStack['delete']=[];
+chartOperationStack['paste']=[];
+chartOperationStack['copy']=[];
+
+//记录用户具体操作,有copy,add,delete,paste
+var chartRareOperationStack=new Array;
+
+//记录当前流程框的数量
+sessionStorage['currentChartAmount']=0;
+
+//指定流程图设计区域宽度高度
+function adjustDesignWidth(){
+    var designWidth=0;
+    var domWidth=$(window).width();
+    designWidth=domWidth-$('.chart-right-panel').width();
+    $('.chart-design').css('width',designWidth-24);
+}
+
+//设置当前部件top,left
+function setChartLocation(top,left){
+    $('#lo-x-display').val(top);
+    $('#lo-y-display').val(left);
+}
+
+//设置当前部件的width和height
+function setChartSize(width,height){
+    alert("setChartSize");
+    $('#chart-width-display').val(width);
+    $('#chart-height-display').val(height);
+}
+
+//****************负责属性面板的内容设置*****************
+
+//*********************************jsPlumb基础信息配置区域*********************************{
+
+//流程图ID唯一标识,用来防止重复,每次新建一个部件时此值必须加1,否则会出现异常
+sessionStorage['idIndex']=0;
+
+//检测设计区域中间区域是否被占据,页面刚加载时默认没有被占据
+sessionStorage['midIsOccupied']='not';
+
 
 //设置线条展现方式为Straight
 function setLineStraight(){hollowCircle['connector'][0]='Straight';}
@@ -481,7 +482,10 @@ $(document).ready(function(){
             }
         }
     });
-
+    jsPlumb.addEndpoint('side_1',{anchors: "RightMiddle"},hollowCircle);
+    jsPlumb.addEndpoint('side_2',{anchors: "RightMiddle"},hollowCircle);
+    jsPlumb.addEndpoint('side_3',{anchors: "RightMiddle"},hollowCircle);
+    jsPlumb.addEndpoint('side_4',{anchors: "RightMiddle"},hollowCircle);
     //***********************************元素拖动控制部分************************************
 });
     //删除元素按钮

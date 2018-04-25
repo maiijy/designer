@@ -9,14 +9,28 @@ body{
 /*左侧设计区域*/
 .chart-design{
 	padding-left: 10px;
-	position: absolute;
+	position: relative;
 	bottom: 2px;
 	top: 2px;
 	right: 230px;
-	left: 0px;
+	left: 25px;
 	width: auto;
 }
-
+.side-group{
+	width: 10px;
+	height: 500px;
+	display: flex;
+	left: 25px;
+	flex-direction: column;
+	/*position: absolute;*/
+	/*top: 20px;*/
+	/*left: 25px;*/
+}
+.side-border{
+	left: 25px;
+	width: 2px;
+	height: 100px;
+}
 /*右侧工具栏*/
 .chart-right-panel{
 	float: right;
