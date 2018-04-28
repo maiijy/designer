@@ -36,7 +36,6 @@ var hollowCircle = {
     // connectorOverlays: [["Arrow", { width: 10, length: 10, location: 1 }]]
 };
 
-adjustDesignWidth();
 //标识右侧工具栏是否已显示,默认显示
 sessionStorage['rightToolsIsDisplay']=true;
 
@@ -53,6 +52,9 @@ chartOperationStack['copy']=[];
 
 //记录用户具体操作,有copy,add,delete,paste
 var chartRareOperationStack=new Array;
+// 规定行高，来计算中心线位置
+var LINE_HEIGHT = 100;
+var DIV_HEIGHT = 40;
 
 //记录当前流程框的数量
 sessionStorage['currentChartAmount']=0;
@@ -64,6 +66,7 @@ function adjustDesignWidth(){
     designWidth=domWidth-$('.chart-right-panel').width();
     $('.chart-design').css('width',designWidth-24);
 }
+
 
 //设置当前部件top,left
 function setChartLocation(top,left){
@@ -331,6 +334,10 @@ $(document).ready(function(){
                 left = designWidth;
             }
 
+            var order_number = top / LINE_HEIGHT;
+            var line = Math.floor(order_number);
+            top = line * LINE_HEIGHT +LINE_HEIGHT/2-DIV_HEIGHT/2;
+
             setChartLocation(top,left);//设置坐标
 
             var name=ui.draggable[0].id;//返回被拖动元素的ID
@@ -487,6 +494,7 @@ $(document).ready(function(){
     jsPlumb.addEndpoint('side_3',{anchors: "RightMiddle"},hollowCircle);
     jsPlumb.addEndpoint('side_4',{anchors: "RightMiddle"},hollowCircle);
     //***********************************元素拖动控制部分************************************
+    adjustDesignWidth();
 });
     //删除元素按钮
     // $(".droppable").on("mouseenter",".draggable",function(){
@@ -509,17 +517,26 @@ $(document).ready(function(){
     //     $("img").remove();
     // });
 
-    // $(".droppable").on("click","img",function(){
-    //     //要先保存父元素的DOM,因为出现确认对话框之后(this)会消失
-    //     var parentDOM=$(this).parent();
-    //     var parentID=parentDOM.attr('id');
-    //     if(confirm("确定要删除吗?")) {
-    //         chartOperationStack['delete'].push(getSingleChartJson(parentID));
-    //         jsPlumb.removeAllEndpoints(parentID);
-    //         parentDOM.remove();
-    //         chartRareOperationStack.push('delete');
-    //     }
-    // });
+    $("div").bind("contextmenu", function(){
+         return false;
+    });
+    $(".draggable").dblclick(function(e) {
+        //右键为3
+        if (2 == e.which) {
+            console.log(this);
+            if($(this).hasClass("draggable")){
+                console.log(this);
+            }
+            // var parentDOM=$(this);
+            // var parentID=parentDOM.attr('id');
+            // if(confirm("确定要删除吗?")) {
+            //     chartOperationStack['delete'].push(getSingleChartJson(parentID));
+            //     jsPlumb.removeAllEndpoints(parentID);
+            //     chartRareOperationStack.push('delete');
+            // }
+        }
+    });
+
     //删除元素按钮
     //设计区域被双击时
 
@@ -642,11 +659,12 @@ $(document).ready(function(){
         // console.log(dataxml2);
         // console.log(fnXml2json(dataxml1));
         // Xml2Json(dataxml2)
+        <!-- 读取一行内容 -->
+        <!-- 读取全部内容 -->
        loadChartByJSON(dataJson);
     });
     //通过json加载流程图
     function loadChartByJSON(data){
-        $('.droppable').html("");
         var unpack=JSON.parse(data);
 
         if(!unpack){

@@ -11,10 +11,21 @@ body{
 	padding-left: 10px;
 	position: relative;
 	bottom: 2px;
-	top: 2px;
+	top: 0px;
 	right: 230px;
-	left: 25px;
+	left: 2px;
 	width: auto;
+}
+.serial_number{
+	width: 20px;
+	float: left;
+	display: inline-flex;
+	flex-direction: column;
+}
+.number_item{
+	height: 60px;
+	padding-top: 40px;
+	text-align: right;
 }
 .side-group{
 	width: 10px;
@@ -120,7 +131,7 @@ body{
 	float: left;
   	width: 40px;
   	height: 40px;
-  	margin-top: 3px;
+  	/*margin-top: 3px;*/
   	margin-bottom:10px;
   	/*background: rgb(255,255,255);*/
   	text-align: center;

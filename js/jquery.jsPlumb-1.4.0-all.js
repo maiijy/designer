@@ -1477,6 +1477,9 @@
             _initDraggableIfNecessary = function(element, isDraggable, dragOptions) {
                 // TODO move to DragManager?
                 // 配置div元素的drag设置
+                var top,
+                    LINE_HEIGHT = 100,
+                    DIV_HEIGHT = 40;
                 if (!jsPlumbAdapter.headless) {
                     var draggable = isDraggable == null ? false : isDraggable, jpcl = jsPlumb.CurrentLibrary;
                     if (draggable) {
@@ -1516,7 +1519,13 @@
                                     this.style.left = originalUI.left+"px";
                                     this.style.top = originalUI.top+"px";
                                 }else{
+                                    var order_number = ui.top / LINE_HEIGHT;
+                                    var line = Math.floor(order_number);
+                                    ui.top = line * LINE_HEIGHT +LINE_HEIGHT/2-DIV_HEIGHT/2;
+                                    console.log(ui);
+                                    debugger;
                                     _draw(element, ui,null,null,false);
+                                    this.style.top = ui.top +"px";
                                 }
                                 _removeClass(element, "jsPlumb_dragged");
                                 _currentInstance.setHoverSuspended(false);
@@ -5326,7 +5335,6 @@
             dragOptions[stopEvent] = _jsPlumb.wrap(dragOptions[stopEvent],
                 function() {
                     // dragstop事件
-                    debugger;
                     var originalEvent = jpcl.getDropEvent(arguments);
                     _ju.removeWithFunction(params.endpointsByElement[placeholderInfo.id], function(e) {
                         return e.id == floatingEndpoint.id;
@@ -7986,10 +7994,10 @@
 
         this._compute = function(paintInfo, params) {
             // 计算线段
-            var height = 30;
+            debugger;
+            var height = 40;
             var flag1 = 0;
             var flag2 = 0;
-            console.log(paintInfo);
             var comArr = [params.sourceInfo,params.targetInfo,params.sourcePos,params.targetPos];
             if(comArr[3][0]<=comArr[1].right
                 &&comArr[2][0]<comArr[3][0]){
@@ -8028,7 +8036,6 @@
 
                 // add the start stub segment.
                 addSegment(segments, paintInfo.startStubX, paintInfo.startStubY, paintInfo.sx, paintInfo.sy);
-                console.log(paintInfo);
 
                 var findClearedLine = function(start, mult, anchorPos, dimension) {
                         return start + (mult * (( 1 - anchorPos) * dimension) + _super.maxStub);
