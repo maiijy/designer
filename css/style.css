@@ -54,6 +54,36 @@ body{
     right: 0px;
 }
 
+.parameter_form{
+	padding-top: 20px;
+	width: 228px;
+	height: 200px;
+	position: absolute;
+	bottom: 0px;
+	background-color: rgba(0,0,0,0.2);
+}
+
+.input_line{
+	margin: 3px;
+	width: 45%;
+	height: 30px;
+	display: inline-block;
+}
+.input_line span{
+	font-size: 12px;
+	font-weight: 100;
+}
+.params_input{
+	width: 50%;
+	display: inline-block;
+	font-size: 12px;
+}
+.params_button{
+	width: 40%;
+	display: inline-block;
+	font-size: 12px;
+}
+
 .chart-ratio{
 	bottom: 0px;
 	border-top: 2px solid rgb(210,209,210);

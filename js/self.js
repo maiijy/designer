@@ -67,6 +67,17 @@ function adjustDesignWidth(){
     $('.chart-design').css('width',designWidth-24);
 }
 
+function toDelete(obj) {
+    debugger;
+    var parentDOM=$(obj);
+    var parentID=parentDOM.attr('id');
+    if(confirm("确定要删除吗?")) {
+        chartOperationStack['delete'].push(getSingleChartJson(parentID));
+        jsPlumb.removeAllEndpoints(parentID);
+        chartRareOperationStack.push('delete');
+    }
+}
+
 
 //设置当前部件top,left
 function setChartLocation(top,left){
@@ -193,7 +204,7 @@ function getSingleChartJson(id){
         var name=chartID.split('-')[0];
 
         //在div内append元素
-        $(newChartArea).append("<div class=\"draggable "+name+" new-"+name+"\" id=\""+chartID+"\"><img style='width: 100%;height: 100%' src='./img/test.svg'/>"+"</div>");
+        $(newChartArea).append("<div class=\"draggable "+name+" new-"+name+"\" id=\""+chartID+"\" ondblclick=\"toDelete(this)\"><img style='width: 100%;height: 100%' src='./img/test.svg'/>"+"</div>");
         $("#"+chartID).css("left",left).css("top",top).css("position","absolute").css("margin","0px");
 
         //用jsPlumb添加锚点
@@ -513,29 +524,6 @@ $(document).ready(function(){
     //     }
     // });
 
-    // $(".droppable").on("mouseleave",".draggable",function(){
-    //     $("img").remove();
-    // });
-
-    $("div").bind("contextmenu", function(){
-         return false;
-    });
-    $(".draggable").dblclick(function(e) {
-        //右键为3
-        if (2 == e.which) {
-            console.log(this);
-            if($(this).hasClass("draggable")){
-                console.log(this);
-            }
-            // var parentDOM=$(this);
-            // var parentID=parentDOM.attr('id');
-            // if(confirm("确定要删除吗?")) {
-            //     chartOperationStack['delete'].push(getSingleChartJson(parentID));
-            //     jsPlumb.removeAllEndpoints(parentID);
-            //     chartRareOperationStack.push('delete');
-            // }
-        }
-    });
 
     //删除元素按钮
     //设计区域被双击时
