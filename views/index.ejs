@@ -1,0 +1,184 @@
+<!DOCTYPE HTML>
+<html lang="zh">
+<head>
+	<title>工作流程图</title>
+	<meta charset="utf-8">
+	<link rel="stylesheet" type="text/css" href="css/style.css">
+</head>
+
+<body>
+<div class="chart-content">
+    <div class="serial_number">
+        <div class="number_item">
+            1
+        </div>
+        <div class="number_item">
+            2
+        </div>
+        <div class="number_item">
+            3
+        </div>
+        <div class="number_item">
+            4
+        </div>
+    </div>
+    <div id="chart-container" class="chart-design droppable">
+        <div class="side-group">
+            <div class="side-border" id="side_1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="svgForDrag">
+                    <path d="M0,0 l0,100Z"
+                          class="stroke"/>
+                </svg>
+            </div>
+            <div class="side-border" id="side_2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="svgForDrag">
+                    <path d="M0,0 l0,100Z"
+                          class="stroke"/>
+                </svg>
+            </div>
+            <div class="side-border" id="side_3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="svgForDrag">
+                    <path d="M0,0 l0,100Z"
+                          class="stroke"/>
+                </svg>
+            </div>
+            <div class="side-border" id="side_4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="svgForDrag">
+                    <path d="M0,0 l0,100Z"
+                          class="stroke"/>
+                </svg>
+            </div>
+        </div>
+    </div>
+    <div class="chart-right-panel">
+        <h5 id="number" style="padding: 0;margin: 0"></h5>
+        <div class="chart-right-list">
+        <div class="chart-list chart-object">
+          <h4>工具栏</h4>
+          <div class="list-button">
+              <button id="export">保存</button>
+              <button id="import">导入</button>
+          </div>
+          <div class="list-content">
+              <div class="area">
+                  <div class="draggable" id="rect">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="svgForDrag">
+                          <path d="M0,20 l15,0 M15,10 l0 20, M25,10 l0,20 M25,20 l15 0 Z"
+                               class="stroke"/>
+                      </svg>
+                  </div>
+                  <div class="draggable roundedRect" id="roundedRect">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="svgForDrag">
+                          <path d="M0,20 l15,0 M15,10 l0 20, M25,10 l0,20 M25,20 l15 0 M30 10 L 10 30 Z"
+                                class="stroke"/>
+                      </svg>
+                  </div>
+                  <div class="draggable circle" id="circle">
+                      <svg version="1.1" xmlns="http://www.w3.org/2000/svg" class="svgForDrag">
+                          <path d="M0,20 l10,0"
+                                class="stroke"/>
+                          <ellipse cx="25" cy="20" rx="15" ry="10"  style="fill:none;stroke:black;stroke-width:2"></ellipse>
+                      </svg>
+                  </div>
+                  <div class="draggable circle" id="parentheses">
+                      <svg xmlns="http://www.w3.org/2000/svg">
+                          <path d="M0,20 l15,0 M20,10 A5,10 0 0,0 20 30 M30,10 A5 10 0 0,1 30 30"
+                                class="stroke"/>
+                      </svg>
+                  </div>
+                  <!--<div class="draggable circle" id="circle">-->
+                      <!--<svg xmlns="http://www.w3.org/2000/svg">-->
+                          <!--<path d="M0,20 l15,0 M20,10 A5,10 0 0,0 20 30 M30,10 A5 10 0 0,1 30 30"-->
+                                <!--class="stroke"/>-->
+                          <!--<text x="20" y="25" style="text-anchor: start; font-size: 14px">1</text>-->
+                      <!--</svg>-->
+                  <!--</div>-->
+                  <!--<div class="draggable circle" id="circle">-->
+                      <!--<svg xmlns="http://www.w3.org/2000/svg">-->
+                          <!--<path d="M0,20 l15,0 M20,10 A5,10 0 0,0 20 30 M30,10 A5 10 0 0,1 30 30"-->
+                                <!--class="stroke"/>-->
+                          <!--<text x="20" y="25" style="text-anchor: start; font-size: 14px">0</text>-->
+                      <!--</svg>-->
+                  <!--</div>-->
+                  <!--<div class="draggable" id="rhombus"></div>-->
+
+                <div id="line-select-div">
+                  <div>
+                    <!--<button class="top-menu-selector" id="line-Straight" onclick="setLineStraight()">直线</button>-->
+                    <!--<button class="top-menu-selector" id="line-Bezier" onclick="setLineBezier()">曲线</button>-->
+                    <!--<button class="top-menu-selector" id="line-Flowchart" onclick="setLineFlowchart()">流程线</button>-->
+                  </div>
+                </div>
+              </div>
+          </div>
+
+        </div>
+      </div>
+        <div class="parameter_form">
+            <div class="row">
+                <div class="input_line">
+                    <span>范围:</span>
+                    <select class="params_input">
+                        <option>VAR</option>
+                        <option>None</option>
+                    </select>
+                </div>
+                <div class="input_line">
+                    <span>对象:</span>
+                    <select class="params_input">
+                        <option>POU</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input_line">
+                    <span>名称:</span>
+                    <input class="params_input"/>
+                </div>
+                <div class="input_line">
+                    <span>类型:</span>
+                    <select class="params_input">
+                        <option>bool</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input_line">
+                    <span>初始化:</span>
+                    <input class="params_input"/>
+                </div>
+                <div class="input_line">
+                    <span>地址:</span>
+                    <input class="params_input"/>
+                </div>
+            </div>
+            <!--<div class="row">-->
+                <!--<span>注释:</span>-->
+                <!--<textarea></textarea>-->
+            <!--</div>-->
+            <div class="row">
+                <div class="input_line">
+                </div>
+                <div class="input_line">
+                    <button class="params_button">确定</button>
+                    <button class="params_button">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
+<script src="socket.io/socket.io.js"></script>
+<script src="external/jquery/jquery.js"></script>
+<script src="js/jquery-ui.js"></script>
+<script src="js/login.js"></script>
+
+<script src="js/jquery.jsPlumb-1.4.0-all.js"></script>
+<script src="js/html2canvas.js"></script>
+<script src="external/jkl-dumper.js"></script>
+<script src="external/ObjTree.js"></script>
+<!--<script src="js/xml2json.js"></script>-->
+<script src="js/login.js"></script>
+<script src="js/self.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,30 @@
+{
+  "name": "designer",
+  "version": "1.0.0",
+  "description": "PLC designer ",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/maiijy/designer.git"
+  },
+  "author": "maiijy",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/maiijy/designer/issues"
+  },
+  "homepage": "https://github.com/maiijy/designer#readme",
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "cookie-parser": "~1.4.3",
+    "debug": "~2.6.3",
+    "express": "^4.15.3",
+    "jquery": "^3.2.1",
+    "morgan": "~1.8.1",
+    "serve-favicon": "~2.4.2",
+    "socket.io": "^2.0.3"
+  }
+}

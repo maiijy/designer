@@ -1,3 +1,5 @@
+
+
 //根蒂根基连接线样式
 var connectorPaintStyle = {
     lineWidth: 2,
@@ -300,7 +302,17 @@ function setChartDesignBorderWidthStyle(style){
 //*********************************流程图数据操作区域*********************************
 
 $(document).ready(function(){
-
+    var url = window.R.url;
+    var socket = io.connect(url);
+    socket.emit("getInfo");
+    socket.on('userInfo',function (data) {
+        console.log(data.userList);
+        $("#number").html("当前在线的人数为："+data.number);
+    });
+    socket.on('is_dragging',function (data) {
+        console.log(data);
+       console.log("当前"+data.name+"正在拖动的是"+data.id);
+    });
     //**************************************UI控制部分***************************************
 
     //初始化动画效果
@@ -323,7 +335,9 @@ $(document).ready(function(){
         helper: "clone",//复制自身被拖动
         scope: "dragflag"//标识 设置元素只允许拖拽到具有相同scope值的droppable元素
     });
+    
 
+    
     $(".droppable").droppable({
         accept: ".draggable", //只接受来自类.draggable的元素
         activeClass:"drop-active", //开始拖动时放置区域讲添加该类名
@@ -331,6 +345,7 @@ $(document).ready(function(){
         // 当draggable放置在droppable上时触发
         //            Event，Object
         drop:function(event,ui){
+
             sessionStorage['idIndex']=sessionStorage['idIndex']+1;
 
             //获取鼠标坐标

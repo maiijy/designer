@@ -620,7 +620,8 @@
 })();
 
 ;(function() {
-
+    var url = window.R.url;
+    var socket = io.connect(url);
     var _findWithFunction = jsPlumbUtil.findWithFunction,
         _indexOf = jsPlumbUtil.indexOf,
         _removeWithFunction = jsPlumbUtil.removeWithFunction,
@@ -1493,6 +1494,9 @@
                             var originalUI = {};
                             var flag = 0;
                             options[startEvent] = _wrap(options[startEvent], function() {
+                                var div_id = element[0].id;
+                                var user_name = sessionStorage.getItem("username");
+                                socket.emit("dragDiv",{div_id:div_id,user_name:user_name});
                                 flag = 0;
                                 originalUI.left = this.offsetLeft;
                                 originalUI.top = this.offsetTop;
@@ -4608,6 +4612,8 @@
  */
 ;(function() {
     var flag = 0;
+    var url = window.R.url;
+    var socket = io.connect(url);
     // create the drag handler for a connection
     //  拖动的处理器
     var _makeConnectionDragHandler = function(placeholder, _jsPlumb) {
@@ -5158,6 +5164,7 @@
         // 拖动j监听器保持与浮动端点的连接
         // if判断是否能启动draggable事件
         if (jpcl.isDragSupported(_element)) {
+            var div_id = _element[0].id;
             var placeholderInfo = { id:null, element:null },
                 jpc = null,
                 existingJpc = false,
@@ -5171,6 +5178,8 @@
                 // one or more connections.
                 // 选择出连接对象
                 flag = 0;
+                var user_name = sessionStorage.getItem("username");
+                socket.emit("dragDiv",{div_id:div_id,user_name:user_name});
                 jpc = self.connectorSelector();
                 var _continue = true;
                 // if not enabled, return
@@ -7994,7 +8003,6 @@
 
         this._compute = function(paintInfo, params) {
             // 计算线段
-            debugger;
             var height = 40;
             var flag1 = 0;
             var flag2 = 0;

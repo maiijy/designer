@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>chat</title>
+    <script src="external/jquery/jquery.js"></script>
+     <script src="js/jquery-ui.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <style type="text/css">
+        .icon {
+            width: 1em; height: 1em;
+            vertical-align: -0.15em;
+            fill: currentColor;
+            overflow: hidden;
+        }
+    </style>
+    <style>
+
+        .sender div:nth-of-type(1) {
+            float: left
+        }
+
+        .sender div:nth-of-type(2) {
+            background-color: #7fffd4;
+            float: left;
+            margin: 0 20px 10px 15px;
+            padding: 10px 10px 10px 0;
+            border-radius: 7px
+        }
+
+        .receiver div:first-child img,
+        .sender div:first-child img {
+            width: 50px;
+            height: 50px
+        }
+
+        .receiver div:nth-child(1) {
+            float: right
+        }
+
+        .receiver div:nth-of-type(2) {
+            float: right;
+            background-color: gold;
+            margin: 0 10px 10px 20px;
+            padding: 10px 0 10px 10px;
+            border-radius: 7px
+        }
+
+    </style>
+    <style>
+        html,body {
+            background: #ccc;
+            padding: 10px 0 20px 0;
+            height: 100%;
+        }
+        h1 {
+            text-align: center;
+        }
+        .login {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div id="loginbox">
+    <h1>登录</h1><i style="text-indent: 10px;" class="icon iconfont icon-photo_camera__easyiconnet"></i>
+    <hr>
+    <div class="login">
+        <div class="form-inline">
+            <div class="form-group">
+                <label for="exampleInputName2">用户名</label>
+                <input type="text" class="form-control" id="name" placeholder="请输入用户名">
+            </div>
+            <!--<lable>用户名：</lable><input type="text" id="name">-->
+            <br><br>
+            <!--<input type="button" value="登录" id="loginbutton">-->
+            <button type="button" class="btn btn-info btn-lg" id="loginButton">登录</button>
+        </div>
+    </div>
+</div>
+     <script src="js/login.js"></script>
+
+</body>
+
+</html>
