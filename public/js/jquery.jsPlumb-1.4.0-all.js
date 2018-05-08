@@ -1280,6 +1280,7 @@
     var jsPlumbInstance = function(_defaults) {
 
 
+
         this.Defaults = {
             Anchor : "BottomCenter",
             Anchors : [ null, null ],
@@ -1494,9 +1495,14 @@
                             var originalUI = {};
                             var flag = 0;
                             options[startEvent] = _wrap(options[startEvent], function() {
+                                var classnames = element[0].className.split(" ");
                                 var div_id = element[0].id;
                                 var user_name = sessionStorage.getItem("username");
-                                socket.emit("dragDiv",{div_id:div_id,user_name:user_name});
+                                if(window.R.is_dragging === div_id&&window.R.name!==user_name){
+                                    alert("当前不能移动这个组件！");
+                                }else{
+                                    socket.emit("start_drag",{div_id:div_id,user_name:user_name});
+                                }
                                 flag = 0;
                                 originalUI.left = this.offsetLeft;
                                 originalUI.top = this.offsetTop;
@@ -1510,13 +1516,19 @@
                             options[dragEvent] = _wrap(options[dragEvent], function() {
                                 var ui = jpcl.getUIPosition(arguments, _currentInstance.getZoom());
                                 // ui={left,top}
+                                //socket.emit("div_dragging",{element:element,ui:ui});
                                  _draw(element, ui, null, true,false);
                                 _addClass(element, "jsPlumb_dragged");
                             });
                             options[stopEvent] = _wrap(options[stopEvent], function() {
+                                debugger;
                                 var ui = jpcl.getUIPosition(arguments, _currentInstance.getZoom());
                                 var obj = document.getElementById(element[0].id);
+                                var user_name = sessionStorage.getItem("user_name");
                                 flag = obj.getAttribute('flag');
+                                if(window.R.is_dragging === element[0].id&&window.R.name!==user_name){
+                                    flag = '1';
+                                }
                                 // debugger;
                                 if(flag ==='1'){
                                     _draw(element, originalUI,null,null,false);
@@ -1526,8 +1538,13 @@
                                     var order_number = ui.top / LINE_HEIGHT;
                                     var line = Math.floor(order_number);
                                     ui.top = line * LINE_HEIGHT +LINE_HEIGHT/2-DIV_HEIGHT/2;
+                                    // debugger;
+                                    console.log(element);
                                     console.log(ui);
-                                    debugger;
+                                    socket.emit('div_dragging',{id:element[0].id,ui:ui});
+                                    window.R.is_dragging = '';
+                                    window.R.name = '';
+                                    socket.emit('div_stop');
                                     _draw(element, ui,null,null,false);
                                     this.style.top = ui.top +"px";
                                 }
@@ -1997,7 +2014,14 @@
                     return r;
                 };
             };
-
+        socket.on("dragging_div",function(data){
+            var element =  _gel(data.id);
+            var ui = data.ui;
+            _draw(element, ui,null,null,false);
+            var elId = _getId(element);
+            document.getElementById(elId).style.top = ui.top +"px";
+            document.getElementById(elId).style.left = ui.left +"px";
+        })
         this.isConnectionBeingDragged = function() { return _connectionBeingDragged != null; };
         this.setConnectionBeingDragged = function(c) {_connectionBeingDragged = c; };
 
@@ -2029,7 +2053,6 @@
         this.hasClass = function(el, clazz) { return jsPlumb.CurrentLibrary.hasClass(el, clazz); };
         //		el = id ; params = 点；reference = 样式
         this.addEndpoint = function(el, params, referenceParams) {
-            console.log(referenceParams.connector[0]);
             referenceParams = referenceParams || {};
             // 传入参数中包含了连线类型，后改为自动选择适合的连线
             var p = jsPlumb.extend({}, referenceParams);
@@ -2308,6 +2331,7 @@
             if (typeof el == 'object' && el.length) {
                 for ( var i = 0, j = el.length; i < j; i++) {
                     var ele = _gel(el[i]);
+                    debugger;
                     if (ele) _initDraggableIfNecessary(ele, true, options);
                 }
             }
@@ -2315,11 +2339,13 @@
                 // into the library adapters (for jquery and mootools aswell)
                 for ( var i = 0, j = el._nodes.length; i < j; i++) {
                     var ele = _gel(el._nodes[i]);
+                    debugger;
                     if (ele) _initDraggableIfNecessary(ele, true, options);
                 }
             }
             else {
                 var ele = _gel(el);
+                debugger;
                 if (ele) _initDraggableIfNecessary(ele, true, options);
             }
             return _currentInstance;
@@ -5179,10 +5205,11 @@
                 // 选择出连接对象
                 flag = 0;
                 var user_name = sessionStorage.getItem("username");
-                socket.emit("dragDiv",{div_id:div_id,user_name:user_name});
+                socket.emit("start_drag",{div_id:div_id,user_name:user_name});
                 jpc = self.connectorSelector();
                 var _continue = true;
                 // if not enabled, return
+
                 if (!self.isEnabled()) _continue = false;
                 // if no connection and we're not a source, return.
                 // 要做一个判断，连接的开始点是否是端点
@@ -5400,6 +5427,16 @@
                     if(conn.flag){
                         _ju.removeElements(jpc.getConnector().getDisplayElements(), self.parent);
                         self.detachFromConnection(jpc);
+                    }else{
+                        window.R.is_dragging = '';
+                        window.R.name = '';
+                        var sourceId = jpc.sourceId;
+                        var targetId = jpc.targetId;
+                        var anchorPos = [];
+                        anchorPos.push(jpc.sourceIdPos);
+                        anchorPos.push(jpc.targetIdPos);
+                        socket.emit('stop_draw',{sId:sourceId,tId:targetId,aPos:anchorPos})
+                        socket.emit('div_stop');
                     }
                     // 移除两个div
                     _ju.removeElements( [ placeholderInfo.element[0], floatingEndpoint.canvas ], _element);

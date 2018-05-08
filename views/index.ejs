@@ -7,7 +7,7 @@
 </head>
 
 <body>
-<div class="chart-content">
+<div class="chart-content" id="chart-content">
     <div class="serial_number">
         <div class="number_item">
             1
@@ -21,9 +21,10 @@
         <div class="number_item">
             4
         </div>
+        <div class="number_item" id="add_button"><p style="margin-top: 40px">+</p></div>
     </div>
     <div id="chart-container" class="chart-design droppable">
-        <div class="side-group">
+        <div class="side-group" id="side-group">
             <div class="side-border" id="side_1">
                 <svg xmlns="http://www.w3.org/2000/svg" class="svgForDrag">
                     <path d="M0,0 l0,100Z"
@@ -52,6 +53,7 @@
     </div>
     <div class="chart-right-panel">
         <h5 id="number" style="padding: 0;margin: 0"></h5>
+        <h6 id="dragInfo" style="padding: 0;margin: 0"></h6>
         <div class="chart-right-list">
         <div class="chart-list chart-object">
           <h4>工具栏</h4>

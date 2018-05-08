@@ -27,6 +27,15 @@ body{
 	padding-top: 40px;
 	text-align: right;
 }
+#add_button{
+	border: 1px solid #cccccc;
+	height: 100px;
+	padding: 0;
+}
+#add_button:hover{
+	background: rgb(238,238,238);
+	cursor: pointer;
+}
 .side-group{
 	width: 10px;
 	height: 500px;

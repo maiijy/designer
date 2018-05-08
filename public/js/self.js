@@ -302,6 +302,7 @@ function setChartDesignBorderWidthStyle(style){
 //*********************************流程图数据操作区域*********************************
 
 $(document).ready(function(){
+    var Index = 4;
     var url = window.R.url;
     var socket = io.connect(url);
     socket.emit("getInfo");
@@ -309,10 +310,79 @@ $(document).ready(function(){
         console.log(data.userList);
         $("#number").html("当前在线的人数为："+data.number);
     });
-    socket.on('is_dragging',function (data) {
-        console.log(data);
-       console.log("当前"+data.name+"正在拖动的是"+data.id);
+
+    socket.on('drag_start',function (data) {
+        var user_name = sessionStorage.getItem("username");
+        if(data.name!==user_name){
+            window.R.is_dragging = data.id;
+            window.R.user_name = data.name;
+        }
+        $("#dragInfo").html("当前"+data.name+"正在拖动的是"+data.id);
     });
+
+    socket.on('stop_div',function () {
+        window.R.is_dragging = '';
+        window.R.user_name = '';
+    });
+
+    socket.on('drawDiv',function (data) {
+        var top = data.top;
+        var left = data.left;
+        var index = data.id;
+        var name = data.name;
+        var trueId = name+"-"+index;
+        var user_name = sessionStorage.getItem("username");
+        var helper = data.helper;
+        var obj = $("#chart-content");
+        if(user_name!== data.user_name){
+            setChartLocation(top,left);//设置坐标
+            //在div内append元素 helper-被拖拽的对象
+            $(obj).append("<div class=\"draggable "+name+" new-"+name+"\" id=\""+trueId+"\">"+helper+"</div>");
+            $("#"+trueId).css("left",left).css("top",top).css("position","absolute").css("margin","0px");
+            var onePointArr = ['parentheses','circle'];
+            if(onePointArr.indexOf(name)===-1){
+                jsPlumb.addEndpoint(trueId,{anchors: "RightMiddle"},hollowCircle);
+            }
+            jsPlumb.addEndpoint(trueId,{anchors: "LeftMiddle"},hollowCircle);
+            jsPlumb.draggable(trueId);
+            $("#"+trueId).draggable({containment: "parent"});//保证拖动不跨界,只能在父容器中移动
+            sessionStorage['idIndex']=index+1;
+        }
+    });
+
+    socket.on('draw_stop',function (data) {
+        debugger;
+        var PageSourceId = data.sId;
+        var PageTargetId = data.tId;
+        var anchorPos = data.aPos;
+        var flowConnector={
+            anchors:anchorPos,
+            endpoint: ["Dot", { radius: 1 }],  //端点的外形
+            connectorStyle: connectorPaintStyle,//连接线的色彩,大小样式
+            connectorHoverStyle: connectorHoverStyle,
+            paintStyle: {
+                strokeStyle: "rgb(0,0,0)",
+                fillStyle: "rgb(0,0,0)",
+                opacity: 0.5,
+                radius: 1,
+                lineWidth: 2,
+                outlineWidth:0
+            },//端点的色彩样式
+            isSource: true,    //是否可以拖动(作为连线出发点)
+            connector: ["Flowchart", { curviness:100 } ],//设置连线为贝塞尔曲线
+            isTarget: true,    //是否可以放置(连线终点)
+            maxConnections: -1,    // 设置连接点最多可以连接几条线
+        };
+
+        jsPlumb.connect({
+            source: PageSourceId, target: PageTargetId
+        },flowConnector);
+    });
+
+    socket.on('side_add',function () {
+        debugger;
+        drawSide();
+    })
     //**************************************UI控制部分***************************************
 
     //初始化动画效果
@@ -335,7 +405,8 @@ $(document).ready(function(){
         helper: "clone",//复制自身被拖动
         scope: "dragflag"//标识 设置元素只允许拖拽到具有相同scope值的droppable元素
     });
-    
+
+
 
     
     $(".droppable").droppable({
@@ -345,7 +416,6 @@ $(document).ready(function(){
         // 当draggable放置在droppable上时触发
         //            Event，Object
         drop:function(event,ui){
-
             sessionStorage['idIndex']=sessionStorage['idIndex']+1;
 
             //获取鼠标坐标
@@ -367,8 +437,9 @@ $(document).ready(function(){
             setChartLocation(top,left);//设置坐标
 
             var name=ui.draggable[0].id;//返回被拖动元素的ID
-            var trueId=name+"-"+sessionStorage['idIndex']+sessionStorage['currentChartAmount'];
-
+            var index = sessionStorage['idIndex'];
+                // +sessionStorage['currentChartAmount'];
+            var trueId=name+"-"+index;
             //在div内append元素 helper-被拖拽的对象
             $(this).append("<div class=\"draggable "+name+" new-"+name+"\" id=\""+trueId+"\">"+$(ui.helper).html()+"</div>");
             $("#"+trueId).css("left",left).css("top",top).css("position","absolute").css("margin","0px");
@@ -401,6 +472,8 @@ $(document).ready(function(){
             chartRareOperationStack.push('add');
 
             sessionStorage['currentChartAmount']=parseInt(sessionStorage['currentChartAmount'],10)+2;
+            var user_name = sessionStorage.getItem("username");
+            socket.emit("newDiv",{left:left,top:top,name:name,trueId:index,user_name:user_name,helper:$(ui.helper).html()});
         }
     });
     // 缩放
@@ -520,6 +593,27 @@ $(document).ready(function(){
     jsPlumb.addEndpoint('side_3',{anchors: "RightMiddle"},hollowCircle);
     jsPlumb.addEndpoint('side_4',{anchors: "RightMiddle"},hollowCircle);
     //***********************************元素拖动控制部分************************************
+
+    function drawSide() {
+        var $btn = $('#add_button');
+        var originId = ('side_'+Index).toString();
+        Index++;
+        var id = ('side_'+Index).toString();
+        var sideHtml = '<div class="side-border" id='+id+'>\n' +
+            '                <svg xmlns="http://www.w3.org/2000/svg" class="svgForDrag">\n' +
+            '                    <path d="M0,0 l0,100Z"\n' +
+            '                          class="stroke"/>\n' +
+            '                </svg>\n' +
+            '            </div>';
+        $btn.before('<div class="number_item">'+Index+'</div>');
+        $('#'+originId).after(sideHtml);
+        jsPlumb.addEndpoint(id,{anchors: "RightMiddle"},hollowCircle);
+    }
+
+    $('#add_button').on('click',function () {
+        drawSide();
+        socket.emit('add_side');
+    });
     adjustDesignWidth();
 });
     //删除元素按钮
@@ -538,6 +632,7 @@ $(document).ready(function(){
     //         $("img").css("left", $(this).width()-20).css("top", 10);
     //     }
     // });
+
 
 
     //删除元素按钮
@@ -708,7 +803,6 @@ $(document).ready(function(){
             var ConnectionId = unpack['connects'][i]['ConnectionId'];
             var PageSourceId = unpack['connects'][i]['PageSourceId'];
             var PageTargetId = unpack['connects'][i]['PageTargetId'];
-            debugger;
             anchorPos = [];
             anchorPos.push(unpack['connects'][i]['ConSourcePos']);
             anchorPos.push(unpack['connects'][i]['ConTargetPos']);

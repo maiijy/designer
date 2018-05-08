@@ -163,10 +163,31 @@ io.on('connection',function (socket) {
         //user.aliveNum--;
         console.log("下线");
     });
-    //拖动div
-    socket.on('dragDiv',function (data) {
-        socket.emit('is_dragging',{id:data.div_id,name:data.user_name});
-        socket.broadcast.emit('is_dragging',{id:data.div_id,name:data.user_name});
+    // 生成新的拖拽元素
+    socket.on('newDiv',function (data) {
+        socket.emit('drawDiv',{left:data.left,top:data.top,name:data.name,id:data.trueId,user_name:data.user_name,helper:data.helper});
+        socket.broadcast.emit('drawDiv',{left:data.left,top:data.top,name:data.name,id:data.trueId,user_name:data.user_name,helper:data.helper});
+    });
+    //拖动div,生成新的div
+    socket.on('start_drag',function (data) {
+        socket.emit('drag_start',{id:data.div_id,name:data.user_name});
+        socket.broadcast.emit('drag_start',{id:data.div_id,name:data.user_name});
+    })
+    // 拖动组件的div，并通知进行渲染
+    socket.on('div_dragging',function (data) {
+        //socket.emit('dragging_div',{element:data.element,ui:data.ui});
+        socket.broadcast.emit('dragging_div',{id:data.id,ui:data.ui});
+    })
+    // 拖动结束，归还控制权
+    socket.on('div_stop',function () {
+        socket.emit('stop_div');
+        socket.broadcast.emit('stop_div');
+    })
+    socket.on('stop_draw',function (data) {
+        socket.broadcast.emit('draw_stop',{sId:data.sId,tId:data.tId,aPos:data.aPos});
+    })
+    socket.on('add_side',function () {
+        socket.broadcast.emit('side_add')
     })
 });
 
