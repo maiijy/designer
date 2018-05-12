@@ -55,7 +55,7 @@ chartOperationStack['copy']=[];
 //记录用户具体操作,有copy,add,delete,paste
 var chartRareOperationStack=new Array;
 // 规定行高，来计算中心线位置
-var LINE_HEIGHT = 100;
+var LINE_HEIGHT = window.R.gridWidth;
 var DIV_HEIGHT = 40;
 
 //记录当前流程框的数量
@@ -593,9 +593,14 @@ $(document).ready(function(){
     jsPlumb.addEndpoint('side_4',{anchors: "RightMiddle"},hollowCircle);
 
     var arr_2d = [];
-    function arr_2d_push(num) {
+    var line_width = $('.line_group').eq(0).width();
+    var block_num = Math.floor(line_width/window.R.gridWidth);
+;    function arr_2d_push(num) {
         arr_2d[num] = [];
         arr_2d[num][0]={size:20,id:'side_'+num};
+        for(var i=0;i<block_num;i++){
+            arr_2d[num].push([{size:20,id:null}])
+        }
     }
 
     arr_2d_push(1);
@@ -603,6 +608,8 @@ $(document).ready(function(){
     arr_2d_push(3);
     arr_2d_push(4);
     window.R.arr = arr_2d;
+    console.log( window.R.arr);
+
     //***********************************元素拖动控制部分************************************
 
     function split_string(arg1,arg2) {

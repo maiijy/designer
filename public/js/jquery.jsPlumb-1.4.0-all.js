@@ -1482,7 +1482,7 @@
                 // 配置div元素的drag设置
                 // 设置了div位于行高的中心轴上
                 var top,
-                    LINE_HEIGHT = 100,
+                    LINE_HEIGHT = window.R.gridWidth,
                     DIV_HEIGHT = 40,
                     LINE_NOW=0;
 
@@ -1499,7 +1499,6 @@
                             var originalUI = {};
                             var flag = 0;
                             options[startEvent] = _wrap(options[startEvent], function() {
-                                var classnames = element[0].className.split(" ");
                                 var div_id = element[0].id;
                                 var user_name = sessionStorage.getItem("username");
                                 if(window.R.is_dragging === div_id&&window.R.name!==user_name){
@@ -1519,7 +1518,10 @@
 
                             options[dragEvent] = _wrap(options[dragEvent], function() {
                                 var ui = jpcl.getUIPosition(arguments, _currentInstance.getZoom());
-                                LINE_NOW = Math.floor(ui.top/LINE_HEIGHT + 1);
+                                LINE_NOW = Math.floor(ui.top/LINE_HEIGHT + 1);//第几行
+                                var left = ui.left;
+                                var orderNum = left/LINE_HEIGHT;//第几个
+                                console.log(LINE_NOW,orderNum,window.R.arr[0][0]);
                                 $('#line_'+LINE_NOW).addClass('highlight');
                                  _draw(element, ui, null, true,false);
                                 _addClass(element, "jsPlumb_dragged");

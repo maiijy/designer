@@ -4,7 +4,8 @@
       user_name:'',
       is_dragging:'',
       index:'0',
-      arr:[]
+      arr:[],
+      gridWidth:100
     };
     var url = window.R.url;
     var socket = io.connect(url);
