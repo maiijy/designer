@@ -3,7 +3,8 @@
       url:"http://127.0.0.1:3000",
       user_name:'',
       is_dragging:'',
-      index:'0'
+      index:'0',
+      arr:[]
     };
     var url = window.R.url;
     var socket = io.connect(url);

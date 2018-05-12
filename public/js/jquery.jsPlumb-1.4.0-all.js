@@ -1473,15 +1473,19 @@
              */
             _getEndpoint = function(uuid) { return endpointsByUUID[uuid]; },
 
+
             /**
              * inits a draggable if it's not already initialised.
              */
             _initDraggableIfNecessary = function(element, isDraggable, dragOptions) {
                 // TODO move to DragManager?
                 // 配置div元素的drag设置
+                // 设置了div位于行高的中心轴上
                 var top,
                     LINE_HEIGHT = 100,
-                    DIV_HEIGHT = 40;
+                    DIV_HEIGHT = 40,
+                    LINE_NOW=0;
+
                 if (!jsPlumbAdapter.headless) {
                     var draggable = isDraggable == null ? false : isDraggable, jpcl = jsPlumb.CurrentLibrary;
                     if (draggable) {
@@ -1515,13 +1519,12 @@
 
                             options[dragEvent] = _wrap(options[dragEvent], function() {
                                 var ui = jpcl.getUIPosition(arguments, _currentInstance.getZoom());
-                                // ui={left,top}
-                                //socket.emit("div_dragging",{element:element,ui:ui});
+                                LINE_NOW = Math.floor(ui.top/LINE_HEIGHT + 1);
+                                $('#line_'+LINE_NOW).addClass('highlight');
                                  _draw(element, ui, null, true,false);
                                 _addClass(element, "jsPlumb_dragged");
                             });
                             options[stopEvent] = _wrap(options[stopEvent], function() {
-                                debugger;
                                 var ui = jpcl.getUIPosition(arguments, _currentInstance.getZoom());
                                 var obj = document.getElementById(element[0].id);
                                 var user_name = sessionStorage.getItem("user_name");
@@ -1529,7 +1532,6 @@
                                 if(window.R.is_dragging === element[0].id&&window.R.name!==user_name){
                                     flag = '1';
                                 }
-                                // debugger;
                                 if(flag ==='1'){
                                     _draw(element, originalUI,null,null,false);
                                     this.style.left = originalUI.left+"px";
@@ -1538,9 +1540,7 @@
                                     var order_number = ui.top / LINE_HEIGHT;
                                     var line = Math.floor(order_number);
                                     ui.top = line * LINE_HEIGHT +LINE_HEIGHT/2-DIV_HEIGHT/2;
-                                    // debugger;
-                                    console.log(element);
-                                    console.log(ui);
+                                    $('#line_'+LINE_NOW).removeClass('highlight');
                                     socket.emit('div_dragging',{id:element[0].id,ui:ui});
                                     window.R.is_dragging = '';
                                     window.R.name = '';

@@ -445,8 +445,6 @@ $(document).ready(function(){
             $("#"+trueId).css("left",left).css("top",top).css("position","absolute").css("margin","0px");
 
             //用jsPlumb添加锚点
-            // jsPlumb.addEndpoint(trueId,{anchors: "TopCenter"},hollowCircle);
-            // jsPlumb.addEndpoint(trueId,{anchors: "BottomCenter"},hollowCircle);
             var onePointArr = ['parentheses','circle'];
             if(onePointArr.indexOf(name)===-1){
                 jsPlumb.addEndpoint(trueId,{anchors: "RightMiddle"},hollowCircle);
@@ -588,17 +586,36 @@ $(document).ready(function(){
             }
         }
     });
+
     jsPlumb.addEndpoint('side_1',{anchors: "RightMiddle"},hollowCircle);
     jsPlumb.addEndpoint('side_2',{anchors: "RightMiddle"},hollowCircle);
     jsPlumb.addEndpoint('side_3',{anchors: "RightMiddle"},hollowCircle);
     jsPlumb.addEndpoint('side_4',{anchors: "RightMiddle"},hollowCircle);
+
+    var arr_2d = [];
+    function arr_2d_push(num) {
+        arr_2d[num] = [];
+        arr_2d[num][0]={size:20,id:'side_'+num};
+    }
+
+    arr_2d_push(1);
+    arr_2d_push(2);
+    arr_2d_push(3);
+    arr_2d_push(4);
+    window.R.arr = arr_2d;
     //***********************************元素拖动控制部分************************************
+
+    function split_string(arg1,arg2) {
+        return  (arg1+arg2).toString();
+    }
 
     function drawSide() {
         var $btn = $('#add_button');
-        var originId = ('side_'+Index).toString();
+        var originId = split_string('side_',Index);
+        var linePrev = split_string('line_',Index);
         Index++;
-        var id = ('side_'+Index).toString();
+        var id = split_string('side_'+Index);
+        var lineId = split_string('line_',Index);
         var sideHtml = '<div class="side-border" id='+id+'>\n' +
             '                <svg xmlns="http://www.w3.org/2000/svg" class="svgForDrag">\n' +
             '                    <path d="M0,0 l0,100Z"\n' +
@@ -607,6 +624,7 @@ $(document).ready(function(){
             '            </div>';
         $btn.before('<div class="number_item">'+Index+'</div>');
         $('#'+originId).after(sideHtml);
+        $('#'+linePrev).after('<div class="drop_line"  id='+lineId+'></div>');
         jsPlumb.addEndpoint(id,{anchors: "RightMiddle"},hollowCircle);
     }
 
