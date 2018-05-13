@@ -5,7 +5,20 @@
       is_dragging:'',
       index:'0',
       arr:[],
-      gridWidth:100
+      gridWidth:90,
+        connectorPaintStyle : {
+            lineWidth: 2,
+            strokeStyle: "rgb(0,0,0)",
+            joinstyle: "round",
+            outlineColor: "rgb(0,0,0)",
+            outlineWidth: 0
+        },
+        connectorHoverStyle : {
+            lineWidth: 2,
+            strokeStyle: "#000000",
+            outlineWidth: 0,
+            outlineColor: "rgb(0,0,0)"
+        }
     };
     var url = window.R.url;
     var socket = io.connect(url);

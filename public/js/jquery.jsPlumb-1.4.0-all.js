@@ -93,7 +93,6 @@
         populate : function(model, values) {
             // for a string, see if it has parameter matches, and if so, try to make the substitutions.
             var getValue = function(fromString) {
-                // debugger;
                     var matches = fromString.match(/(\${.*?})/g);
                     if (matches != null) {
                         for (var i = 0; i < matches.length; i++) {
@@ -499,7 +498,6 @@
          */
         // 添加端点时，先查找是否有注册的父元素，这样不会拖动分离
         this.endpointAdded = function(el) {
-            // debugger; //连接上
             var jpcl = jsPlumb.CurrentLibrary, b = document.body, id = _currentInstance.getId(el), c = jpcl.getDOMElement(el),
                 p = c.parentNode, done = p == b;
 
@@ -738,7 +736,6 @@
             // 提供一个beforeDrop回调，该回调将在删除之前执行可以returnfalse来拒绝连接
             var beforeDrop = params.beforeDrop;
             this.isDropAllowed = function(sourceId, targetId, scope, connection, dropEndpoint) {
-                // debugger;
                 var r = self._jsPlumb.checkCondition("beforeDrop", {
                     sourceId:sourceId,
                     targetId:targetId,
@@ -1429,7 +1426,6 @@
             _draw = function(element, ui, timestamp, clearEdits,able) {
                 // TODO is it correct to filter by headless at this top level? how would a headless adapter ever repaint?
                 if (!jsPlumbAdapter.headless && !_suspendDrawing) {
-                    // debugger; 连接上
                     var id = _att(element, "id"),
                         repaintEls = _currentInstance.dragManager.getElementsForDraggable(id);
                     // repaintEls : 获取该拖动元素的对象
@@ -1474,6 +1470,30 @@
             _getEndpoint = function(uuid) { return endpointsByUUID[uuid]; },
 
 
+            _addConnectForAuto = function (PageSourceId,PageTargetId) {
+                var anchorPos = ['RightMiddle','LeftMiddle'];
+                var flowConnector={
+                    anchors:anchorPos,
+                    endpoint: ["Dot", { radius: 1 }],  //端点的外形
+                    connectorStyle: connectorPaintStyle,//连接线的色彩,大小样式
+                    connectorHoverStyle: connectorHoverStyle,
+                    paintStyle: {
+                        strokeStyle: "rgb(0,0,0)",
+                        fillStyle: "rgb(0,0,0)",
+                        opacity: 0.5,
+                        radius: 1,
+                        lineWidth: 2,
+                        outlineWidth:0
+                    },//端点的色彩样式
+                    isSource: true,    //是否可以拖动(作为连线出发点)
+                    connector: ["Flowchart", { curviness:100 } ],//设置连线为贝塞尔曲线
+                    isTarget: true,    //是否可以放置(连线终点)
+                    maxConnections: -1,    // 设置连接点最多可以连接几条线
+                };
+                jsPlumb.connect({
+                    source: PageSourceId, target: PageTargetId
+                },flowConnector);
+            }
             /**
              * inits a draggable if it's not already initialised.
              */
@@ -1482,7 +1502,8 @@
                 // 配置div元素的drag设置
                 // 设置了div位于行高的中心轴上
                 var top,
-                    LINE_HEIGHT = window.R.gridWidth,
+                    LINE_HEIGHT = 100,
+                    GRID_WIDTH = window.R.gridWidth,
                     DIV_HEIGHT = 40,
                     LINE_NOW=0;
 
@@ -1498,8 +1519,13 @@
                             // 初始化 drag对象的事件
                             var originalUI = {};
                             var flag = 0;
+                            var div_id = element[0].id;
+                            var flagForQuick = 0;
+                            var orderNum = 0;
+                            var leftId = '';
+                            var rightId = '';
                             options[startEvent] = _wrap(options[startEvent], function() {
-                                var div_id = element[0].id;
+                                flagForQuick = 0;
                                 var user_name = sessionStorage.getItem("username");
                                 if(window.R.is_dragging === div_id&&window.R.name!==user_name){
                                     alert("当前不能移动这个组件！");
@@ -1509,20 +1535,32 @@
                                 flag = 0;
                                 originalUI.left = this.offsetLeft;
                                 originalUI.top = this.offsetTop;
-                                // console.log(originalUI);
+                                $('#line_'+LINE_NOW).addClass('highlight');
                                 _currentInstance.setHoverSuspended(true);
                                 _currentInstance.select({source:element}).addClass(_currentInstance.elementDraggingClass + " " + _currentInstance.sourceElementDraggingClass, true);
                                 _currentInstance.select({target:element}).addClass(_currentInstance.elementDraggingClass + " " + _currentInstance.targetElementDraggingClass, true);
 
                             });
-
                             options[dragEvent] = _wrap(options[dragEvent], function() {
                                 var ui = jpcl.getUIPosition(arguments, _currentInstance.getZoom());
                                 LINE_NOW = Math.floor(ui.top/LINE_HEIGHT + 1);//第几行
-                                var left = ui.left;
-                                var orderNum = left/LINE_HEIGHT;//第几个
-                                console.log(LINE_NOW,orderNum,window.R.arr[0][0]);
-                                $('#line_'+LINE_NOW).addClass('highlight');
+                                var left = ui.left - 20;
+                                orderNum = Math.floor(left/GRID_WIDTH);//第几个
+                                var distance = left%GRID_WIDTH;
+                                debugger;
+                                // if(-5<distance<0){
+                                //     orderNum = orderNum >=0 ? orderNum-1:0;
+                                // }
+                                leftId = window.R.arr[LINE_NOW-1][orderNum].id;
+                                rightId = window.R.arr[LINE_NOW-1][orderNum+1].id?window.R.arr[LINE_NOW-1][orderNum+1].id:0;
+                                // 加入新的节点
+                                if(!rightId){
+                                    if(distance<10){
+                                        flagForQuick = 1;
+                                    }
+                                }else if(rightId!== div_id&&leftId!==div_id){
+                                    flagForQuick = 2;
+                                }
                                  _draw(element, ui, null, true,false);
                                 _addClass(element, "jsPlumb_dragged");
                             });
@@ -1534,15 +1572,56 @@
                                 if(window.R.is_dragging === element[0].id&&window.R.name!==user_name){
                                     flag = '1';
                                 }
-                                if(flag ==='1'){
+
+                                $('#line_'+LINE_NOW).removeClass('highlight');
+                                var order_number = ui.top / LINE_HEIGHT;
+                                var line = Math.floor(order_number);
+                                var newLeft = orderNum*GRID_WIDTH+0.5*LINE_HEIGHT;
+                                ui.top = line * LINE_HEIGHT +LINE_HEIGHT/2-DIV_HEIGHT/2;
+                                if (flagForQuick  === 2){
+                                    debugger;
+                                    var conn = jsPlumb.getConnections({
+                                        //only one of source and target is needed, better if both setted
+                                        source: leftId,
+                                        target: rightId
+                                    });
+                                    if (conn[0]) {
+                                        jsPlumb.detach(conn[0]);
+                                    }
+                                    var rightElement =  _gel(rightId);
+                                    var newUi = ui;
+                                    newUi.left = rightElement.left+GRID_WIDTH;
+                                    _draw(rightElement, newUi,null,null,false);
+                                    _addConnectForAuto(div_id,rightId);
+                                    console.log(rightElement);
+                                    //$('#'+rightId).css(newUi.left)
+
+                                    ui.left = newLeft+20;
+                                    _draw(element, ui,null,null,false);
+                                    this.style.top = ui.top +"px";
+                                    this.style.left = newLeft+"px";
+                                    _addConnectForAuto(leftId,div_id);
+                                    window.R.arr[LINE_NOW-1][orderNum+1].id = div_id;
+                                    window.R.arr[LINE_NOW-1][orderNum+1].size = DIV_HEIGHT;
+                                }
+                                else if(flagForQuick){
+                                    var PageSourceId = window.R.arr[LINE_NOW-1][orderNum].id;
+                                    var PageTargetId = div_id;
+                                    ui.left = newLeft+20;
+                                    _draw(element, ui,null,null,false);
+                                    this.style.top = ui.top +"px";
+                                    this.style.left = newLeft+"px";
+                                    _addConnectForAuto(PageSourceId,PageTargetId);
+                                    window.R.arr[LINE_NOW-1][orderNum+1].id = div_id;
+                                    window.R.arr[LINE_NOW-1][orderNum+1].size = DIV_HEIGHT;
+                                    console.log(window.R.arr);
+                                }
+                                else if(flag ==='1'){
                                     _draw(element, originalUI,null,null,false);
                                     this.style.left = originalUI.left+"px";
                                     this.style.top = originalUI.top+"px";
-                                }else{
-                                    var order_number = ui.top / LINE_HEIGHT;
-                                    var line = Math.floor(order_number);
-                                    ui.top = line * LINE_HEIGHT +LINE_HEIGHT/2-DIV_HEIGHT/2;
-                                    $('#line_'+LINE_NOW).removeClass('highlight');
+                                }
+                                else{
                                     socket.emit('div_dragging',{id:element[0].id,ui:ui});
                                     window.R.is_dragging = '';
                                     window.R.name = '';
@@ -1679,7 +1758,6 @@
                         params["parent"] = params.source.parent;
                     else params["parent"] = parent(params.source);
                 }
-                // debugger;
                 params["_jsPlumb"] = _currentInstance;
                 params.newConnection = _newConnection;
                 params.newEndpoint = _newEndpoint;
@@ -1761,7 +1839,6 @@
              */
                 // 加入新节点
             _newEndpoint = function(params) {
-                // debugger;
                 var endpointFunc = _currentInstance.Defaults.EndpointType || jsPlumb.Endpoint;
                 var _p = jsPlumb.extend({}, params);
                 // ;
@@ -1912,7 +1989,6 @@
              * or if 'recalc' is true in order to force a recalculation, we get the current values.
              */
             _updateOffset = function(params) {
-                // debugger; 连接上
                 var timestamp = params.timestamp, recalc = params.recalc, offset = params.offset, elId = params.elId;
                 if (_suspendDrawing && !timestamp) timestamp = _suspendedAt;
                 if (!recalc) {
@@ -2333,7 +2409,6 @@
             if (typeof el == 'object' && el.length) {
                 for ( var i = 0, j = el.length; i < j; i++) {
                     var ele = _gel(el[i]);
-                    debugger;
                     if (ele) _initDraggableIfNecessary(ele, true, options);
                 }
             }
@@ -2341,13 +2416,11 @@
                 // into the library adapters (for jquery and mootools aswell)
                 for ( var i = 0, j = el._nodes.length; i < j; i++) {
                     var ele = _gel(el._nodes[i]);
-                    debugger;
                     if (ele) _initDraggableIfNecessary(ele, true, options);
                 }
             }
             else {
                 var ele = _gel(el);
-                debugger;
                 if (ele) _initDraggableIfNecessary(ele, true, options);
             }
             return _currentInstance;
@@ -2371,7 +2444,6 @@
 
         // helpers for select/selectEndpoints
         var _setOperation = function(list, func, args, selector) {
-                // debugger;
                 for (var i = 0, j = list.length; i < j; i++) {
                     list[i][func].apply(list[i], args);
                 }
@@ -2439,7 +2511,6 @@
                     } else results.push(obj);
                 };
             for ( var i in connectionsByScope) {
-                // debugger;
                 if (filterList(scopes, i)) {
                     for ( var j = 0, jj = connectionsByScope[i].length; j < jj; j++) {
                         var c = connectionsByScope[i][j];
@@ -2489,7 +2560,6 @@
         };
 
         var	_makeConnectionSelectHandler = function(list) {
-            // debugger;
             var common = _makeCommonSelectHandler(list, _makeConnectionSelectHandler);
             return jsPlumb.CurrentLibrary.extend(common, {
                 // setters
@@ -2788,7 +2858,6 @@
                 var dropOptions = jsPlumb.extend({}, p.dropOptions || {}),
                     _drop = function() {
                         // 先做connection的端点使用
-                        // debugger;
                         var originalEvent = jsPlumb.CurrentLibrary.getDropEvent(arguments),
                             targetCount = _currentInstance.select({target:elid}).length;
 
@@ -2973,7 +3042,6 @@
 
         // see api docs
         this.makeSource = function(el, params, referenceParams) {
-            // debugger;
             var p = jsPlumb.extend({}, referenceParams);
             jsPlumb.extend(p, params);
             _setEndpointPaintStylesAndAnchor(p, 0);
@@ -3062,7 +3130,6 @@
                     });
                     // when the user presses the mouse, add an Endpoint, if we are enabled.
                     var mouseDownListener = function(e) {
-                        // //debugger;
                         // if disabled, return.
 
                         if (!_sourcesEnabled[idToRegisterAgainst]) return;
@@ -3313,9 +3380,6 @@
                 _draw(_gel(el), ui, timestamp,null,true);
             }
             _currentInstance.flag = flag;
-            // debugger;
-            // console.log("_currentInstance.flag");
-            // console.log(_currentInstance);
             return _currentInstance;
         };
 
@@ -4079,7 +4143,6 @@
                 }
                 // ... and any other endpoints we came across as a result of the continuous anchors.
                 for (var i = 0; i < endpointsToPaint.length; i++) {
-                    // debugger;
                     var cd = jsPlumbInstance.getCachedData(endpointsToPaint[i].elementId);
                     endpointsToPaint[i].paint( { timestamp : timestamp, offset : cd, dimensions : cd.s });
                 }
@@ -4441,7 +4504,6 @@
 
 // -------- basic anchors ------------------
     var _curryAnchor = function(x, y, ox, oy, type, fnInit) {
-        // //debugger;
         jsPlumb.Anchors[type] = function(params) {
             var a = params.jsPlumbInstance.makeAnchor([ x, y, ox, oy, 0, 0 ], params.elementId, params.jsPlumbInstance);
             a.type = type;
@@ -4597,7 +4659,6 @@
                     ]);
                 },
                 "Path":function(params) {
-                    // debugger;
                     var points = params.points, p = [], tl = 0;
                     for (var i = 0; i < points.length - 1; i++) {
                         var l = Math.sqrt(Math.pow(points[i][2] - points[i][0]) + Math.pow(points[i][3] - points[i][1]));
@@ -4649,7 +4710,6 @@
         return {
             // 4.10
             drag : function() {
-                // debugger; // 给端点绑定drag事件 连接上
                 if (stopped) {
                     stopped = false;
                     return true;
@@ -5248,7 +5308,6 @@
                 // TODO merge this code with the code in both Anchor and FloatingAnchor, because it
                 // does the same stuff.
                 // 来设置div的位置
-                // debugger; 连接上
                 var ipcoel = _gel(inPlaceCopy.canvas),
                     ipco = _getOffset(ipcoel, _jsPlumb),
                     po = _jsPlumb.adjustForParentOffsetAndScroll([ipco.left, ipco.top], inPlaceCopy.canvas),
@@ -5820,7 +5879,6 @@
             var c = new Object();
             // 此函数创建svg，xx类型的对象,继承自connectors
             jsPlumb.Connectors[connectorName].apply(c, [connectorArgs]);
-            // debugger; // 继承 连接上
             jsPlumb.ConnectorRenderers[renderMode].apply(c, [connectorArgs]);
             return c;
         };
@@ -6141,21 +6199,22 @@
                     var sAnchorP = sE.anchor.getCurrentLocation(sE),
                         tAnchorP = tE.anchor.getCurrentLocation(tE);
                     var distance = sAnchorP[1] - tAnchorP[1];
-                    if(!Math.abs(distance)){
+                    if(Math.abs(distance)<1){
                         // if(elId === tId){
                         //     tAnchorP[1] = sAnchorP[1];
-                        //     debugger;
                         //     document.getElementById(tId).style.top -= distance;
                         //     targetInfo.top -= distance;
                         // }else{
                         //     sAnchorP[1] = tAnchorP[1];
-                        //     debugger;
+                        //
                         //     document.getElementById(sId).style.top -= distance;
                         //     sourceInfo.top -= distance;
                         // }
                         // //
                         // distance>0?tAnchorP[1] = sAnchorP[1]:sAnchorP[1] = tAnchorP[1];
                         connector.type = 'Straight';
+                    }else if(Math.abs(distance)>2){
+                        connector.type = 'Flowchart';
                     }
                     connector.resetBounds();
                     connector.compute({
@@ -6225,7 +6284,6 @@
          * Repaints the Connection. No parameters exposed to public API.
          */
         this.repaint = function(params) {
-            //debugger;4.8
             params = params || {};
             var recalc = !(params.recalc === false);
             this.paint({ elId : this.sourceId, recalc : recalc, timestamp:params.timestamp, clearEdits:params.clearEdits });
@@ -6770,7 +6828,6 @@
         };
 
         var _prepareCompute = function(params) {
-            // debugger; //连接上
             self.lineWidth = params.lineWidth;
             var segment = jsPlumbUtil.segment(params.sourcePos, params.targetPos),
                 swapX = params.targetPos[0] < params.sourcePos[0],
@@ -7434,7 +7491,6 @@
         var div;
 
         var makeDiv = function() {
-            //debugger;
             div = params.create(params.component);
             div = jpcl.getDOMElement(div);
             div.style["position"] 	= 	"absolute";
@@ -7931,7 +7987,6 @@
      * cornerRadius - optional, defines the radius of corners between segments. defaults to 0 (hard edged corners).
      */
     jsPlumb.Connectors.Flowchart = function(params) {
-        // debugger; 连接上
         this.type = "Flowchart";
         params = params || {};
         params.stub = params.stub || 30;
@@ -8211,7 +8266,6 @@
         };
 
         this.getPath = function() {
-            //debugger;
             var _last = null, _lastAxis = null, s = [], segs = userSuppliedSegments || segments;
             for (var i = 0; i < segs.length; i++) {
                 var seg = segs[i], axis = seg[4], axisIndex = (axis == "v" ? 3 : 2);
@@ -8234,7 +8288,6 @@
 
         this.setPath = function(path) {
             // 设置路径
-            // debugger;
             userSuppliedSegments = [];
             // 遍历参数
             for (var i = 0; i < path.length; i++) {
@@ -8643,7 +8696,6 @@
         self.canvas = null;
         self.isAppendedAtTopLevel = true;
         var getPath = function(d) {
-            //debugger;
             return "m " + _conv(d.hxy.x) + "," + _conv(d.hxy.y) +
                 " l " + _conv(d.tail[0].x) + "," + _conv(d.tail[0].y) +
                 " " + _conv(d.cxy.x) + "," + _conv(d.cxy.y) +
@@ -8762,7 +8814,6 @@
         },
         //   设置属性和属性值
         _attr = function(node, attributes) {
-            // //debugger; //4
             for (var i in attributes)
                 node.setAttribute(i, "" + attributes[i]);
         },
@@ -8819,7 +8870,6 @@
             node.setAttribute(STYLE, applyGradientTo + ":url(#" + id + ")");
         },
         _applyStyles = function(parent, node, style, dimensions, uiComponent) {
-            // debugger; 连接上
             if (style.gradient) {
                 _updateGradient(parent, node, style, dimensions, uiComponent);
             }
@@ -8832,7 +8882,6 @@
             node.setAttribute(FILL, style.fillStyle ? jsPlumbUtil.convertStyle(style.fillStyle, true) : NONE);
             node.setAttribute(STROKE, style.strokeStyle ? jsPlumbUtil.convertStyle(style.strokeStyle, true) : NONE);
             if (style.lineWidth) {
-                // debugger;
                 node.setAttribute(STROKE_WIDTH, style.lineWidth);
             }
 
@@ -8897,7 +8946,6 @@
                 svg.insertBefore(path, svg.childNodes[idx]);
             }
             else
-            // //debugger;
                 svg.appendChild(path);
         };
 
@@ -8935,7 +8983,6 @@
             };
         // 配置
         self.svg = _node("svg", svgParams);
-        //debugger;
         if (params.useDivWrapper) {
             self.canvas = document.createElement("div");
             self.canvas.style["position"] = "absolute";
@@ -8963,7 +9010,6 @@
         };
 
         this.paint = function(style, anchor, extents) {
-            // debugger;4.8
             if (style != null) {
 
                 var xy = [ self.x, self.y ], wh = [ self.w, self.h ], p;
@@ -9073,7 +9119,6 @@
     jsPlumb.Segments.svg = {
         SegmentRenderer : {
             getPath : function(segment) {
-                // debugger; 连接上
                 return ({
                     "Straight":function() {
                         var d = segment.getCoordinates();
@@ -9102,7 +9147,6 @@
 	 * Base class for SVG endpoints.
 	 */
     var SvgEndpoint = window.SvgEndpoint = function(params) {
-        //debugger;
         var self = this,
             _super = SvgComponent.apply(this, [ {
                 cssClass:params["_jsPlumb"].endpointClass,
@@ -9211,7 +9255,6 @@
                     path = _node("path", {
                         "pointer-events":"all"
                     });
-                    // //debugger;
                     params.component.svg.appendChild(path);
 
                     self.attachListeners(path, params.component);

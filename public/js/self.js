@@ -37,7 +37,25 @@ var hollowCircle = {
     maxConnections: -1,    // 设置连接点最多可以连接几条线
     // connectorOverlays: [["Arrow", { width: 10, length: 10, location: 1 }]]
 };
-
+var anchorPos = ['RightMiddle','LeftMiddle'];
+var FlowConnector={
+    anchors:anchorPos,
+    endpoint: ["Dot", { radius: 1 }],  //端点的外形
+    connectorStyle: connectorPaintStyle,//连接线的色彩,大小样式
+    connectorHoverStyle: connectorHoverStyle,
+    paintStyle: {
+        strokeStyle: "rgb(0,0,0)",
+        fillStyle: "rgb(0,0,0)",
+        opacity: 0.5,
+        radius: 1,
+        lineWidth: 2,
+        outlineWidth:0
+    },//端点的色彩样式
+    isSource: true,    //是否可以拖动(作为连线出发点)
+    connector: ["Flowchart", { curviness:100 } ],//设置连线为贝塞尔曲线
+    isTarget: true,    //是否可以放置(连线终点)
+    maxConnections: -1,    // 设置连接点最多可以连接几条线
+};
 //标识右侧工具栏是否已显示,默认显示
 sessionStorage['rightToolsIsDisplay']=true;
 
@@ -55,7 +73,7 @@ chartOperationStack['copy']=[];
 //记录用户具体操作,有copy,add,delete,paste
 var chartRareOperationStack=new Array;
 // 规定行高，来计算中心线位置
-var LINE_HEIGHT = window.R.gridWidth;
+var LINE_HEIGHT = 100;
 var DIV_HEIGHT = 40;
 
 //记录当前流程框的数量
@@ -351,7 +369,6 @@ $(document).ready(function(){
     });
 
     socket.on('draw_stop',function (data) {
-        debugger;
         var PageSourceId = data.sId;
         var PageTargetId = data.tId;
         var anchorPos = data.aPos;
@@ -380,7 +397,6 @@ $(document).ready(function(){
     });
 
     socket.on('side_add',function () {
-        debugger;
         drawSide();
     })
     //**************************************UI控制部分***************************************
@@ -415,11 +431,12 @@ $(document).ready(function(){
         scope: "dragflag",
         // 当draggable放置在droppable上时触发
         //            Event，Object
+        drag:function () {
+            console.clear();
+          console.log("drag");
+        },
         drop:function(event,ui){
-            sessionStorage['idIndex']=sessionStorage['idIndex']+1;
-
             //获取鼠标坐标
-            
             var left=parseInt(ui.offset.left-$(this).offset().left);
             var top=parseInt(ui.offset.top-$(this).offset().top)+4;
             // 保证放置后处于“画布”内
@@ -434,6 +451,15 @@ $(document).ready(function(){
             var line = Math.floor(order_number);
             top = line * LINE_HEIGHT +LINE_HEIGHT/2-DIV_HEIGHT/2;
 
+            var orderNum = Math.floor(left/window.R.gridWidth);//第几个
+            var distance = left%window.R.gridWidth;
+            // if(-5<distance<0){
+            //     orderNum = orderNum>=0 ? orderNum-1:0;
+            // }
+            var isExitId = window.R.arr[line][orderNum].id;
+            if(distance<10 &&  isExitId !== null){
+                left = orderNum*window.R.gridWidth+0.5*LINE_HEIGHT;
+            }
             setChartLocation(top,left);//设置坐标
 
             var name=ui.draggable[0].id;//返回被拖动元素的ID
@@ -456,11 +482,19 @@ $(document).ready(function(){
 
             // changeValue("#"+trueId);
 
+            if(distance<10 &&  isExitId !== trueId){
+                jsPlumb.connect({
+                    source: isExitId, target: trueId
+                },FlowConnector);
+                window.R.arr[line][orderNum+1].id = trueId;
+                window.R.arr[line][orderNum+1].size = DIV_HEIGHT;
+            }
+
             list=jsPlumb.getAllConnections();//获取所有的连接
 
 
             //元素ID网上加,防止重复
-            sessionStorage['idIndex']=sessionStorage['idIndex']+1;
+            sessionStorage['idIndex']=parseInt(sessionStorage['idIndex'])+1;
 
             //设置当前选择的流程框图
             sessionStorage['currentChartSelected']=trueId;
@@ -586,29 +620,12 @@ $(document).ready(function(){
             }
         }
     });
-
     jsPlumb.addEndpoint('side_1',{anchors: "RightMiddle"},hollowCircle);
     jsPlumb.addEndpoint('side_2',{anchors: "RightMiddle"},hollowCircle);
     jsPlumb.addEndpoint('side_3',{anchors: "RightMiddle"},hollowCircle);
     jsPlumb.addEndpoint('side_4',{anchors: "RightMiddle"},hollowCircle);
 
-    var arr_2d = [];
-    var line_width = $('.line_group').eq(0).width();
-    var block_num = Math.floor(line_width/window.R.gridWidth);
-;    function arr_2d_push(num) {
-        arr_2d[num] = [];
-        arr_2d[num][0]={size:20,id:'side_'+num};
-        for(var i=0;i<block_num;i++){
-            arr_2d[num].push([{size:20,id:null}])
-        }
-    }
 
-    arr_2d_push(1);
-    arr_2d_push(2);
-    arr_2d_push(3);
-    arr_2d_push(4);
-    window.R.arr = arr_2d;
-    console.log( window.R.arr);
 
     //***********************************元素拖动控制部分************************************
 
@@ -640,6 +657,25 @@ $(document).ready(function(){
         socket.emit('add_side');
     });
     adjustDesignWidth();
+
+    var arr_2d = [];
+    var line_width = $('.chart-design').eq(0).width();
+    var block_num = Math.floor(line_width/window.R.gridWidth);
+    function arr_2d_push(num) {
+        arr_2d[num] = [];
+        var number = num+1;
+        arr_2d[num][0]={size:20,id:'side_'+number};
+        for(var i=0;i<block_num;i++){
+            arr_2d[num].push({size:20,id:null})
+        }
+    }
+    arr_2d_push(0);
+    arr_2d_push(1);
+    arr_2d_push(2);
+    arr_2d_push(3);
+
+    window.R.arr = arr_2d;
+    console.log( window.R.arr);
 });
     //删除元素按钮
     // $(".droppable").on("mouseenter",".draggable",function(){
@@ -669,7 +705,6 @@ $(document).ready(function(){
     }
 
     $(document).on('drag','._jsPlumb_connector ',function () {
-       alert("1");
     });
 
 

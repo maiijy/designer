@@ -15,6 +15,7 @@ body{
 	right: 230px;
 	left: 2px;
 	width: auto;
+	display: inline-block;
 }
 .serial_number{
 	width: 20px;
