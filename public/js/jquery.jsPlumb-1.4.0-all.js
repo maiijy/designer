@@ -1590,11 +1590,15 @@
                                     }
                                     var rightElement =  _gel(rightId);
                                     var newUi = ui;
-                                    newUi.left = rightElement.left+GRID_WIDTH;
-                                    _draw(rightElement, newUi,null,null,false);
+                                    debugger;
+                                    newUi.left = rightElement[0].offsetLeft + GRID_WIDTH + 20;
+                                    var rightLeft = newUi.left - 20;
+                                    debugger;
                                     _addConnectForAuto(div_id,rightId);
+                                    rightElement[0].style.left = rightLeft + "px";
                                     console.log(rightElement);
-                                    //$('#'+rightId).css(newUi.left)
+                                    _draw(rightElement, newUi,null,null,false);
+                                    window.R.arr[LINE_NOW-1][orderNum+2].id = rightId;
 
                                     ui.left = newLeft+20;
                                     _draw(element, ui,null,null,false);

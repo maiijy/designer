@@ -483,6 +483,7 @@ $(document).ready(function(){
             // changeValue("#"+trueId);
 
             if(distance<10 &&  isExitId !== trueId){
+                debugger;
                 jsPlumb.connect({
                     source: isExitId, target: trueId
                 },FlowConnector);
