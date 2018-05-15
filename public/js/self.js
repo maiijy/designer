@@ -636,7 +636,9 @@ $(document).ready(function(){
             init_arr(index);
         }
         if(event.which==40 && index!=0){
-            console.log("拓宽");
+            $("#number_"+index).addClass("number_item_two");
+            $("#side_"+Index).remove();
+
         }
     });
     jsPlumb.addEndpoint('side_1',{anchors: "RightMiddle"},hollowCircle);
@@ -652,7 +654,7 @@ $(document).ready(function(){
         return  (arg1+arg2).toString();
     }
 
-    function drawSide() {
+    function drawSide(flag) {
         var $btn = $('#add_button');
         var originId = split_string('side_',Index);
         var linePrev = split_string('line_',Index);
@@ -665,7 +667,7 @@ $(document).ready(function(){
             '                          class="stroke"/>\n' +
             '                </svg>\n' +
             '            </div>';
-        $btn.before('<div class="number_item">'+Index+'</div>');
+        $btn.before('<div class="number_item" id="number_'+Index+'">'+Index+'</div>');
         $('#'+originId).after(sideHtml);
         $('#'+linePrev).after('<div class="drop_line"  id='+lineId+'></div>');
         jsPlumb.addEndpoint(id,{anchors: "RightMiddle"},hollowCircle);

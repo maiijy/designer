@@ -28,6 +28,11 @@ body{
 	padding-top: 40px;
 	text-align: right;
 }
+.number_item_two{
+	height: 120px !important;
+	padding-top: 80px !important;
+	text-align: right;
+}
 #add_button{
 	border: 1px solid #cccccc;
 	height: 100px;
