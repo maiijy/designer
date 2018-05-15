@@ -55,7 +55,7 @@ body{
 	height: 100px;
 }
 .highlight{
-	border: 1px solid yellow;
+	border-right: 2px solid red;
 }
 .side-border{
 	left: 25px;

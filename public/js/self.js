@@ -535,6 +535,16 @@ $(document).ready(function(){
             jsPlumb.detach(conn);
         }
     });
+    var index=0;
+    $(document).on("dblclick",function (e) {
+        debugger;
+       var top = e.clientY;
+        $(".highlight").removeClass("highlight");
+       index = Math.floor(top/LINE_HEIGHT) + 1;
+       $("#side_"+index).addClass("highlight");
+    });
+
+
 
     //DOCUMENT快捷键操作
     $(document).on("keydown", function(event){
@@ -620,6 +630,14 @@ $(document).ready(function(){
                 }
             }
         }
+        if(event.which==13 && index!=0){
+            var newIdex = index + 1;
+            drawSide();
+            init_arr(index);
+        }
+        if(event.which==40 && index!=0){
+            console.log("拓宽");
+        }
     });
     jsPlumb.addEndpoint('side_1',{anchors: "RightMiddle"},hollowCircle);
     jsPlumb.addEndpoint('side_2',{anchors: "RightMiddle"},hollowCircle);
@@ -669,14 +687,29 @@ $(document).ready(function(){
         for(var i=0;i<block_num;i++){
             arr_2d[num].push({size:20,id:null})
         }
+        window.R.arr = arr_2d;
+    }
+    console.log(window.R.arr);
+    function init_arr(index){
+        var arr = [];
+        for(var i=0;i<block_num+1;i++){
+           arr.push({size:20,id:null})
+        }
+        window.R.arr.splice(index,0,arr);
+        while(index<Index){
+            var real = index + 1;
+            window.R.arr[index][0].id = "side_"+real;
+            index++;
+        }
+        debugger;
+        console.log(window.R.arr);
     }
     arr_2d_push(0);
     arr_2d_push(1);
     arr_2d_push(2);
     arr_2d_push(3);
 
-    window.R.arr = arr_2d;
-    console.log( window.R.arr);
+
 });
     //删除元素按钮
     // $(".droppable").on("mouseenter",".draggable",function(){

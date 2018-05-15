@@ -1564,7 +1564,8 @@
                                  _draw(element, ui, null, true,false);
                                 _addClass(element, "jsPlumb_dragged");
                             });
-                            options[stopEvent] = _wrap(options[stopEvent], function() {
+                            options[stopEvent] = _wrap(options[stopEvent], function(e) {
+                                console.log(e);
                                 var ui = jpcl.getUIPosition(arguments, _currentInstance.getZoom());
                                 var obj = document.getElementById(element[0].id);
                                 var user_name = sessionStorage.getItem("user_name");
