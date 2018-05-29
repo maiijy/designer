@@ -541,7 +541,13 @@ $(document).ready(function(){
        var top = e.clientY;
         $(".highlight").removeClass("highlight");
        index = Math.floor(top/LINE_HEIGHT) + 1;
-       $("#side_"+index).addClass("highlight");
+       var two_id = index - 1;
+        if(window.R.arr[two_id][0].size == 40 && !window.R.arr[two_id][0].id){
+            $("#side_"+two_id).addClass("highlight");
+        }else{
+            var id  = window.R.arr[two_id][0].id
+            $("#"+id).addClass("highlight");
+        }
     });
 
 
@@ -636,9 +642,23 @@ $(document).ready(function(){
             init_arr(index);
         }
         if(event.which==40 && index!=0){
+            $("#number_"+index).removeClass("number_item");
             $("#number_"+index).addClass("number_item_two");
-            $("#side_"+Index).remove();
-
+            $("#side-group").html("");
+            for(var i = 1;i<=Index;i++){
+                if(i==index){
+                    init_same_arr(index);
+                    window.R.arr[index].size = 40
+                    drawTwo(20,i);
+                }else{
+                    drawTwo(10,i);
+                }
+                console.log(window.R.arr);
+            }
+            console.log(window.R.arr);
+        }
+        if(event.which==38 && index!=0){
+            $(".highlight").removeClass("highlight");
         }
     });
     jsPlumb.addEndpoint('side_1',{anchors: "RightMiddle"},hollowCircle);
@@ -654,13 +674,61 @@ $(document).ready(function(){
         return  (arg1+arg2).toString();
     }
 
-    function drawSide(flag) {
+    function drawTwo(size,index) {
+        var tmpsize = 10;
+        $children = $("side-group").children();
+        var id = 'side_'+index;
+        var sideHtml = '<div class="side-border" id='+id+'>\n' +
+            '                <svg xmlns="http://www.w3.org/2000/svg" class="svgForDrag">\n' +
+            '                    <path d="M0,0 l0,100Z"\n' +
+            '                          class="stroke"/>\n' +
+            '                </svg>\n' +
+            '            </div>';
+        var twoSideHtml = '<div class="side-border-two">\n' +
+            '<div class="side-border" id='+id+'>\n' +
+            '                <svg xmlns="http://www.w3.org/2000/svg" class="svgForDrag">\n' +
+            '                    <path d="M0,0 l0,100Z"\n' +
+            '                          class="stroke"/>\n' +
+            '                </svg>\n' +
+            '            </div>'+
+            '<div class="side-border">\n' +
+            '                <svg xmlns="http://www.w3.org/2000/svg" class="svgForDrag">\n' +
+            '                    <path d="M0,0 l0,100Z"\n' +
+            '                          class="stroke"/>\n' +
+            '                </svg>\n' +
+            '            </div>'+
+            '            </div>';
+        if($children.length == 0){
+            if(size>tmpsize){
+                $("#side-group").append(twoSideHtml);
+            }else{
+                $("#side-group").append(sideHtml);
+            }
+        }else{
+            var headIndex = index-1;
+            var originId = split_string('side_',headIndex);
+            debugger;
+            if(size>tmpsize){
+                $('#'+originId).after(twoSideHtml);
+            }else{
+                $('#'+originId).after(sideHtml);
+            }
+        }
+        jsPlumb.addEndpoint(id,{anchors: "RightMiddle"},hollowCircle);
+    }
+
+    function drawSide(size) {
+        debugger;
+        var tmpsize = 10;
+        if(size){
+            tmpsize = size;
+        }
         var $btn = $('#add_button');
-        var originId = split_string('side_',Index);
-        var linePrev = split_string('line_',Index);
+        var originId = 'side_'+Index;
+        var linePrev = 'line_'+Index;
         Index++;
-        var id = split_string('side_'+Index);
-        var lineId = split_string('line_',Index);
+        var id = 'side_'+Index;
+        var lineId = 'line_'+Index;
         var sideHtml = '<div class="side-border" id='+id+'>\n' +
             '                <svg xmlns="http://www.w3.org/2000/svg" class="svgForDrag">\n' +
             '                    <path d="M0,0 l0,100Z"\n' +
@@ -691,9 +759,9 @@ $(document).ready(function(){
         }
         window.R.arr = arr_2d;
     }
-    console.log(window.R.arr);
     function init_arr(index){
         var arr = [];
+        debugger;
         for(var i=0;i<block_num+1;i++){
            arr.push({size:20,id:null})
         }
@@ -703,8 +771,14 @@ $(document).ready(function(){
             window.R.arr[index][0].id = "side_"+real;
             index++;
         }
+    }
+    function init_same_arr(index){
+        var arr = [];
         debugger;
-        console.log(window.R.arr);
+        for(var i=0;i<block_num+1;i++){
+            arr.push({size:40,id:null})
+        }
+        window.R.arr.splice(index,0,arr);
     }
     arr_2d_push(0);
     arr_2d_push(1);
@@ -767,7 +841,6 @@ $(document).ready(function(){
                 });
             }
         }
-        console.log(connects);
         obj['connects'] = connects;
 
         $(".droppable .draggable").each(function(idx, elem){
