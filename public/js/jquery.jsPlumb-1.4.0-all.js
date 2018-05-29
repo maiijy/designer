@@ -1535,13 +1535,13 @@
                                 flag = 0;
                                 originalUI.left = this.offsetLeft;
                                 originalUI.top = this.offsetTop;
-                                $('#line_'+LINE_NOW).addClass('highlight');
+                                // $('#line_'+LINE_NOW).addClass('highlight');
                                 _currentInstance.setHoverSuspended(true);
                                 _currentInstance.select({source:element}).addClass(_currentInstance.elementDraggingClass + " " + _currentInstance.sourceElementDraggingClass, true);
                                 _currentInstance.select({target:element}).addClass(_currentInstance.elementDraggingClass + " " + _currentInstance.targetElementDraggingClass, true);
 
                             });
-                            options[dragEvent] = _wrap(options[dragEvent], function() {
+                            options[dragEvent] = _wrap(options[dragEvent], function(e) {
                                 var ui = jpcl.getUIPosition(arguments, _currentInstance.getZoom());
                                 LINE_NOW = Math.floor(ui.top/LINE_HEIGHT + 1);//第几行
                                 var left = ui.left - 20;
@@ -1565,7 +1565,7 @@
                                 _addClass(element, "jsPlumb_dragged");
                             });
                             options[stopEvent] = _wrap(options[stopEvent], function(e) {
-                                console.log(e);
+                                console.log(window.R.arr);
                                 var ui = jpcl.getUIPosition(arguments, _currentInstance.getZoom());
                                 var obj = document.getElementById(element[0].id);
                                 var user_name = sessionStorage.getItem("user_name");
@@ -1574,7 +1574,7 @@
                                     flag = '1';
                                 }
 
-                                $('#line_'+LINE_NOW).removeClass('highlight');
+                                // $('#line_'+LINE_NOW).removeClass('highlight');
                                 var order_number = ui.top / LINE_HEIGHT;
                                 var line = Math.floor(order_number);
                                 var newLeft = orderNum*GRID_WIDTH+0.5*LINE_HEIGHT;

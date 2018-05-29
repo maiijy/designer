@@ -67,6 +67,11 @@ body{
 	width: 2px;
 	height: 100px;
 }
+.side-border-two{
+	left: 25px;
+	width: 2px;
+	height: 200px;
+}
 /*右侧工具栏*/
 .chart-right-panel{
 	float: right;
