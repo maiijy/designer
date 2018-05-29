@@ -1,5 +1,5 @@
 
-
+debugger;
 //根蒂根基连接线样式
 var connectorPaintStyle = {
     lineWidth: 2,

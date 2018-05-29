@@ -3,7 +3,6 @@
 <head>
 	<title>工作流程图</title>
 	<meta charset="utf-8">
-	<link rel="stylesheet" type="text/css" href="css/style.css">
 </head>
 
 <body>
@@ -91,6 +90,12 @@
                   <div class="draggable circle" id="parentheses">
                       <svg xmlns="http://www.w3.org/2000/svg">
                           <path d="M0,20 l15,0 M20,10 A5,10 0 0,0 20 30 M30,10 A5 10 0 0,1 30 30"
+                                class="stroke"/>
+                      </svg>
+                  </div>
+                  <div class="draggable twice" id="bigone">
+                      <svg xmlns="http://www.w3.org/2000/svg">
+                          <path d="M0,20 l15,0 M15,10 l0 20, M25,10 l0,20 M25,20 l15 0 Z"
                                 class="stroke"/>
                       </svg>
                   </div>
@@ -186,6 +191,10 @@
 <script src="external/ObjTree.js"></script>
 <!--<script src="js/xml2json.js"></script>-->
 <script src="js/login.js"></script>
+<script>
+    debugger;
+</script>
+<link rel="stylesheet" type="text/css" href="css/style.css">
 <script src="js/self.js"></script>
 
 </body>
