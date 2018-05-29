@@ -4531,6 +4531,10 @@
     _curryAnchor(1, 1, 0, 1, "BottomRight");
     _curryAnchor(0, 0, 0, -1, "TopLeft");
     _curryAnchor(0, 1, 0, 1, "BottomLeft");
+    // changable
+    // x,y,ox,oy
+    _curryAnchor(0, 0.25, -1, 0, "LeftThird");
+    _curryAnchor(0, 0.75, -1, 0, "LeftTwoThird");
 
 // ------- dynamic anchors -------------------
 

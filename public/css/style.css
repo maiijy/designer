@@ -219,7 +219,10 @@ body{
 .roundedRect{
 	border-radius: 8px;
 }
-
+.functionBlock{
+	height: 80px;
+	width: 75px;
+}
 /*圆*/
 .circle{
 	height: 40px;

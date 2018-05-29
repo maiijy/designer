@@ -1,5 +1,4 @@
 
-debugger;
 //根蒂根基连接线样式
 var connectorPaintStyle = {
     lineWidth: 2,
@@ -475,7 +474,12 @@ $(document).ready(function(){
             if(onePointArr.indexOf(name)===-1){
                 jsPlumb.addEndpoint(trueId,{anchors: "RightMiddle"},hollowCircle);
             }
-            jsPlumb.addEndpoint(trueId,{anchors: "LeftMiddle"},hollowCircle);
+            if(name === 'functionBlock'){
+                jsPlumb.addEndpoint(trueId,{anchors: "LeftThird"},hollowCircle);
+                jsPlumb.addEndpoint(trueId,{anchors: "LeftTwoThird"},hollowCircle);
+            }else{
+                jsPlumb.addEndpoint(trueId,{anchors: "LeftMiddle"},hollowCircle);
+            }
 
             jsPlumb.draggable(trueId);
             $("#"+trueId).draggable({containment: "parent"});//保证拖动不跨界,只能在父容器中移动
