@@ -24,18 +24,18 @@ body{
 	flex-direction: column;
 }
 .number_item{
-	height: 60px;
-	padding-top: 40px;
+	height: 30px;
+	padding-top: 20px;
 	text-align: right;
 }
-.number_item_twonumber_item_two{
-	height: 120px !important;
-	padding-top: 80px !important;
+.number_item_two{
+	height: 60px !important;
+	padding-top: 40px !important;
 	text-align: right;
 }
 #add_button{
 	border: 1px solid #cccccc;
-	height: 100px;
+	height: 50px;
 	padding: 0;
 }
 #add_button:hover{
@@ -52,25 +52,29 @@ body{
 .line_group{
 	display: inline-flex;
 	flex-direction: column;
-	width: 96%;
+	width: 98%;
 	height: 100%;
 }
 .drop_line{
 	width: 100%;
-	height: 100px;
+	height: 50px;
+}
+.line_twice{
+	height: 100px !important;
 }
 .highlight{
-	border-right: 2px solid red;
+	/*border-right: 2px solid red;*/
+	background-color: antiquewhite;
 }
 .side-border{
 	left: 25px;
 	width: 2px;
-	height: 100px;
+	height: 50px;
 }
 .side-border-two{
 	left: 25px;
 	width: 2px;
-	height: 200px;
+	height: 100px;
 }
 /*右侧工具栏*/
 .chart-right-panel{
@@ -199,7 +203,9 @@ body{
     font-size: 14px;
     margin-right: 10px;
  }
-
+.twice{
+	height: 80px;
+}
 .draggable:hover{
   	cursor:pointer;
 }

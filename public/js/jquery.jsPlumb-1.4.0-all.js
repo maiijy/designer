@@ -1470,8 +1470,8 @@
             _getEndpoint = function(uuid) { return endpointsByUUID[uuid]; },
 
 
-            _addConnectForAuto = function (PageSourceId,PageTargetId) {
-                var anchorPos = ['RightMiddle','LeftMiddle'];
+            _addConnectForAuto = function (PageSourceId,PageTargetId,anchorArr) {
+                var anchorPos = anchorArr || ['RightMiddle','LeftMiddle'];
                 var flowConnector={
                     anchors:anchorPos,
                     endpoint: ["Dot", { radius: 1 }],  //端点的外形
@@ -1502,7 +1502,7 @@
                 // 配置div元素的drag设置
                 // 设置了div位于行高的中心轴上
                 var top,
-                    LINE_HEIGHT = 100,
+                    LINE_HEIGHT = 50,
                     GRID_WIDTH = window.R.gridWidth,
                     DIV_HEIGHT = 40,
                     LINE_NOW=0;
@@ -1547,7 +1547,6 @@
                                 var left = ui.left - 20;
                                 orderNum = Math.floor(left/GRID_WIDTH);//第几个
                                 var distance = left%GRID_WIDTH;
-                                debugger;
                                 // if(-5<distance<0){
                                 //     orderNum = orderNum >=0 ? orderNum-1:0;
                                 // }
@@ -1565,22 +1564,24 @@
                                 _addClass(element, "jsPlumb_dragged");
                             });
                             options[stopEvent] = _wrap(options[stopEvent], function(e) {
-                                console.log(window.R.arr);
                                 var ui = jpcl.getUIPosition(arguments, _currentInstance.getZoom());
                                 var obj = document.getElementById(element[0].id);
                                 var user_name = sessionStorage.getItem("user_name");
+                                var height = obj.clientHeight;
                                 flag = obj.getAttribute('flag');
                                 if(window.R.is_dragging === element[0].id&&window.R.name!==user_name){
                                     flag = '1';
                                 }
-
                                 // $('#line_'+LINE_NOW).removeClass('highlight');
                                 var order_number = ui.top / LINE_HEIGHT;
+                                if(height/DIV_HEIGHT>1){
+                                    extendHeight(Math.ceil(order_number),0);
+                                }
                                 var line = Math.floor(order_number);
                                 var newLeft = orderNum*GRID_WIDTH+0.5*LINE_HEIGHT;
                                 ui.top = line * LINE_HEIGHT +LINE_HEIGHT/2-DIV_HEIGHT/2;
+                                // 插入直接相连的直线段
                                 if (flagForQuick  === 2){
-                                    debugger;
                                     var conn = jsPlumb.getConnections({
                                         //only one of source and target is needed, better if both setted
                                         source: leftId,
@@ -1591,10 +1592,10 @@
                                     }
                                     var rightElement =  _gel(rightId);
                                     var newUi = ui;
-                                    debugger;
                                     newUi.left = rightElement[0].offsetLeft + GRID_WIDTH + 20;
                                     var rightLeft = newUi.left - 20;
                                     debugger;
+                                    // 两点之间进行插入，try
                                     _addConnectForAuto(div_id,rightId);
                                     rightElement[0].style.left = rightLeft + "px";
                                     console.log(rightElement);
@@ -1609,23 +1610,41 @@
                                     window.R.arr[LINE_NOW-1][orderNum+1].id = div_id;
                                     window.R.arr[LINE_NOW-1][orderNum+1].size = DIV_HEIGHT;
                                 }
+                                // 自动吸附
                                 else if(flagForQuick){
+                                    debugger;
                                     var PageSourceId = window.R.arr[LINE_NOW-1][orderNum].id;
                                     var PageTargetId = div_id;
                                     ui.left = newLeft+20;
                                     _draw(element, ui,null,null,false);
                                     this.style.top = ui.top +"px";
                                     this.style.left = newLeft+"px";
+                                    // 进行处理，对不同尺寸的进行不同锚点选择
+                                    if(height/DIV_HEIGHT>1){
+                                        var startElement = _gel(PageSourceId);
+                                        if(startElement.hasClass("functionBlock")){
+                                            console.log(startElement);
+                                        }
+                                        if(obj.hasClass("functionBlock")){
+                                            console.log(obj);
+                                        }
+                                        console.log(_gel(PageSourceId));
+                                        // _gel(PageSourceId) - start element
+                                        // obj/this - target element
+                                        console.log(PageSourceId,PageTargetId);
+                                    }
                                     _addConnectForAuto(PageSourceId,PageTargetId);
                                     window.R.arr[LINE_NOW-1][orderNum+1].id = div_id;
                                     window.R.arr[LINE_NOW-1][orderNum+1].size = DIV_HEIGHT;
                                     console.log(window.R.arr);
                                 }
+                                // 不可移动，恢复原有位置
                                 else if(flag ==='1'){
                                     _draw(element, originalUI,null,null,false);
                                     this.style.left = originalUI.left+"px";
                                     this.style.top = originalUI.top+"px";
                                 }
+                                // 正常处理
                                 else{
                                     socket.emit('div_dragging',{id:element[0].id,ui:ui});
                                     window.R.is_dragging = '';
@@ -4535,6 +4554,7 @@
     // x,y,ox,oy
     _curryAnchor(0, 0.25, -1, 0, "LeftThird");
     _curryAnchor(0, 0.75, -1, 0, "LeftTwoThird");
+    _curryAnchor(1, 0.25, 1, 0, "RightThird");
 
 // ------- dynamic anchors -------------------
 

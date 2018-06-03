@@ -5,6 +5,7 @@
       is_dragging:'',
       index:'0',
       arr:[],
+      Index:4,
       gridWidth:90,
         connectorPaintStyle : {
             lineWidth: 2,

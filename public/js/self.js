@@ -1,3 +1,12 @@
+// 用作连接判断
+$('body').on("mouseover",function (e) {
+    console.log(e.target);
+})
+$(".drop_line").on("mouseover",function () {
+    console.clear();
+    console.log("this");
+})
+//用数组记录下所有连接的组件和连线，用作全局渲染，用比较决定
 
 //根蒂根基连接线样式
 var connectorPaintStyle = {
@@ -72,9 +81,10 @@ chartOperationStack['copy']=[];
 //记录用户具体操作,有copy,add,delete,paste
 var chartRareOperationStack=new Array;
 // 规定行高，来计算中心线位置
-var LINE_HEIGHT = 100;
+var LINE_HEIGHT = 50;
 var DIV_HEIGHT = 40;
-
+var TD_WIDTH = 100;
+var line_width;
 //记录当前流程框的数量
 sessionStorage['currentChartAmount']=0;
 
@@ -84,10 +94,100 @@ function adjustDesignWidth(){
     var domWidth=$(window).width();
     designWidth=domWidth-$('.chart-right-panel').width();
     $('.chart-design').css('width',designWidth-24);
+    line_width = designWidth-24;
+}
+adjustDesignWidth();
+var block_num = Math.floor(line_width/window.R.gridWidth);
+console.log(block_num);
+function init_arr(index){
+    var arr = [];
+    for(var i=0;i<block_num+1;i++){
+        arr.push({size:20,id:null})
+    }
+    window.R.arr.splice(index,0,arr);
+    while(index<window.R.Index){
+        var real = index + 1;
+        window.R.arr[index][0].id = "side_"+real;
+        index++;
+    }
+}
+function init_same_arr(index){
+    var arr = [];
+    for(var i=0;i<block_num+1;i++){
+        arr.push({size:40,id:null})
+    }
+    window.R.arr.splice(index,0,arr);
 }
 
+function drawTwo(size,index) {
+    var tmpsize = 10;
+    $children = $("side-group").children();
+    var id = 'side_'+index;
+    var sideHtml = '<div class="side-border" id='+id+'>\n' +
+        '                <svg xmlns="http://www.w3.org/2000/svg" class="svgForDrag">\n' +
+        '                    <path d="M0,0 l0,50Z"\n' +
+        '                          class="stroke"/>\n' +
+        '                </svg>\n' +
+        '            </div>';
+    var twoSideHtml = '<div class="side-border-two">\n' +
+        '<div class="side-border" id='+id+'>\n' +
+        '                <svg xmlns="http://www.w3.org/2000/svg" class="svgForDrag">\n' +
+        '                    <path d="M0,0 l0,50Z"\n' +
+        '                          class="stroke"/>\n' +
+        '                </svg>\n' +
+        '            </div>'+
+        '<div class="side-border">\n' +
+        '                <svg xmlns="http://www.w3.org/2000/svg" class="svgForDrag">\n' +
+        '                    <path d="M0,0 l0,50Z"\n' +
+        '                          class="stroke"/>\n' +
+        '                </svg>\n' +
+        '            </div>'+
+        '            </div>';
+    if($children.length == 0){
+        if(size>tmpsize){
+            $("#side-group").append(twoSideHtml);
+        }else{
+            $("#side-group").append(sideHtml);
+        }
+    }else{
+        var headIndex = index-1;
+        var originId = split_string('side_',headIndex);
+        debugger;
+        if(size>tmpsize){
+            $('#'+originId).after(twoSideHtml);
+        }else{
+            $('#'+originId).after(sideHtml);
+        }
+    }
+    jsPlumb.addEndpoint(id,{anchors: "RightMiddle"},hollowCircle);
+}
+
+function extendHeight(th,flag) {
+    // 批量做了处理，但要根据数组size来区分是否需要进行操作
+    $(".number_item_two").addClass("number_item")
+        .removeClass("number_item_two");
+    $("#number_"+th).removeClass("number_item")
+        .addClass("number_item_two");
+    $("#side-group").html("");
+    for(var i = 1;i<=window.R.Index;i++){
+        if(i==th){
+            init_same_arr(th);
+            window.R.arr[th].size = 40;
+            drawTwo(20,i);
+        }else{
+            drawTwo(10,i);
+        }
+    }
+    if(flag){
+        var originId = window.R.Index;
+        originId++;
+        var lineId = 'line_'+originId;
+        $('#line_'+window.R.Index).after('<div class="drop_line"  id='+lineId+'></div>');
+    }else{
+
+    }
+}
 function toDelete(obj) {
-    debugger;
     var parentDOM=$(obj);
     var parentID=parentDOM.attr('id');
     if(confirm("确定要删除吗?")) {
@@ -397,7 +497,53 @@ $(document).ready(function(){
 
     socket.on('side_add',function () {
         drawSide();
-    })
+    });
+
+    function drawSide(size) {
+        debugger;
+        var tmpsize = 10;
+        if(size){
+            tmpsize = size;
+        }
+        var $btn = $('#add_button');
+        var originId = 'side_'+Index;
+        var linePrev = 'line_'+Index;
+        Index++;
+        var id = 'side_'+Index;
+        var lineId = 'line_'+Index;
+        var sideHtml = '<div class="side-border" id='+id+'>\n' +
+            '                <svg xmlns="http://www.w3.org/2000/svg" class="svgForDrag">\n' +
+            '                    <path d="M0,0 l0,50Z"\n' +
+            '                          class="stroke"/>\n' +
+            '                </svg>\n' +
+            '            </div>';
+        $btn.before('<div class="number_item" id="number_'+Index+'">'+Index+'</div>');
+        $('#'+originId).after(sideHtml);
+        $('#'+linePrev).after('<div class="drop_line"  id='+lineId+'></div>');
+        jsPlumb.addEndpoint(id,{anchors: "RightMiddle"},hollowCircle);
+    }
+
+    $('#add_button').on('click',function () {
+        drawSide();
+        socket.emit('add_side');
+    });
+
+    var arr_2d = [];
+    function arr_2d_push(num) {
+        arr_2d[num] = [];
+        var number = num+1;
+        arr_2d[num][0]={size:20,id:'side_'+number};
+        for(var i=0;i<block_num;i++){
+            arr_2d[num].push({size:20,id:null})
+        }
+        window.R.arr = arr_2d;
+    }
+
+    arr_2d_push(0);
+    arr_2d_push(1);
+    arr_2d_push(2);
+    arr_2d_push(3);
+
     //**************************************UI控制部分***************************************
 
     //初始化动画效果
@@ -445,7 +591,12 @@ $(document).ready(function(){
             if(left > designWidth){
                 left = designWidth;
             }
-
+            // 做拓宽处理
+            var height = ui.helper[0].clientHeight;
+            var th = Math.ceil(top/LINE_HEIGHT);
+            if(height/DIV_HEIGHT > 1){
+                extendHeight(th,1);
+            }
             var order_number = top / LINE_HEIGHT;
             var line = Math.floor(order_number);
             top = line * LINE_HEIGHT +LINE_HEIGHT/2-DIV_HEIGHT/2;
@@ -455,9 +606,10 @@ $(document).ready(function(){
             // if(-5<distance<0){
             //     orderNum = orderNum>=0 ? orderNum-1:0;
             // }
-            var isExitId = window.R.arr[line][orderNum].id;
+            console.log(window.R.arr);
+            var isExitId = window.R.arr[line][orderNum].id ?window.R.arr[line][orderNum].id:null ;
             if(distance<10 &&  isExitId !== null){
-                left = orderNum*window.R.gridWidth+0.5*LINE_HEIGHT;
+                left = orderNum*window.R.gridWidth+0.5*TD_WIDTH;
             }
             setChartLocation(top,left);//设置坐标
 
@@ -471,13 +623,16 @@ $(document).ready(function(){
 
             //用jsPlumb添加锚点
             var onePointArr = ['parentheses','circle'];
-            if(onePointArr.indexOf(name)===-1){
-                jsPlumb.addEndpoint(trueId,{anchors: "RightMiddle"},hollowCircle);
-            }
             if(name === 'functionBlock'){
                 jsPlumb.addEndpoint(trueId,{anchors: "LeftThird"},hollowCircle);
-                jsPlumb.addEndpoint(trueId,{anchors: "LeftTwoThird"},hollowCircle);
-            }else{
+                jsPlumb.addEndpoint(trueId,{anchors: "RightThird"},hollowCircle);
+                // jsPlumb.addEndpoint(trueId,{anchors: "LeftTwoThird"},hollowCircle);
+            }
+            else if(onePointArr.indexOf(name)===-1){
+                jsPlumb.addEndpoint(trueId,{anchors: "RightMiddle"},hollowCircle);
+                jsPlumb.addEndpoint(trueId,{anchors: "LeftMiddle"},hollowCircle);
+            }
+            else{
                 jsPlumb.addEndpoint(trueId,{anchors: "LeftMiddle"},hollowCircle);
             }
 
@@ -487,10 +642,14 @@ $(document).ready(function(){
             // changeValue("#"+trueId);
 
             if(distance<10 &&  isExitId !== trueId){
-                debugger;
+                if(name === 'functionBlock'){
+                    var newAchs = ['LeftMiddle','LeftThird'];
+                    FlowConnector.anchors = newAchs;
+                }
                 jsPlumb.connect({
                     source: isExitId, target: trueId
                 },FlowConnector);
+                FlowConnector.anchors = anchorPos;
                 window.R.arr[line][orderNum+1].id = trueId;
                 window.R.arr[line][orderNum+1].size = DIV_HEIGHT;
             }
@@ -540,17 +699,18 @@ $(document).ready(function(){
         }
     });
     var index=0;
-    $(document).on("dblclick",function (e) {
-        debugger;
+    $(document).on("click",function (e) {
        var top = e.clientY;
         $(".highlight").removeClass("highlight");
        index = Math.floor(top/LINE_HEIGHT) + 1;
        var two_id = index - 1;
+       console.log(window.R.arr);
         if(window.R.arr[two_id][0].size == 40 && !window.R.arr[two_id][0].id){
-            $("#side_"+two_id).addClass("highlight");
+            $("#line_"+two_id).addClass("highlight");
         }else{
-            var id  = window.R.arr[two_id][0].id
-            $("#"+id).addClass("highlight");
+            var id  = window.R.arr[two_id][0].id;
+            $("#line_"+index).addClass("highlight");
+            $("#side_"+index).addClass("highlight");
         }
     });
 
@@ -673,122 +833,6 @@ $(document).ready(function(){
 
 
     //***********************************元素拖动控制部分************************************
-
-    function split_string(arg1,arg2) {
-        return  (arg1+arg2).toString();
-    }
-
-    function drawTwo(size,index) {
-        var tmpsize = 10;
-        $children = $("side-group").children();
-        var id = 'side_'+index;
-        var sideHtml = '<div class="side-border" id='+id+'>\n' +
-            '                <svg xmlns="http://www.w3.org/2000/svg" class="svgForDrag">\n' +
-            '                    <path d="M0,0 l0,100Z"\n' +
-            '                          class="stroke"/>\n' +
-            '                </svg>\n' +
-            '            </div>';
-        var twoSideHtml = '<div class="side-border-two">\n' +
-            '<div class="side-border" id='+id+'>\n' +
-            '                <svg xmlns="http://www.w3.org/2000/svg" class="svgForDrag">\n' +
-            '                    <path d="M0,0 l0,100Z"\n' +
-            '                          class="stroke"/>\n' +
-            '                </svg>\n' +
-            '            </div>'+
-            '<div class="side-border">\n' +
-            '                <svg xmlns="http://www.w3.org/2000/svg" class="svgForDrag">\n' +
-            '                    <path d="M0,0 l0,100Z"\n' +
-            '                          class="stroke"/>\n' +
-            '                </svg>\n' +
-            '            </div>'+
-            '            </div>';
-        if($children.length == 0){
-            if(size>tmpsize){
-                $("#side-group").append(twoSideHtml);
-            }else{
-                $("#side-group").append(sideHtml);
-            }
-        }else{
-            var headIndex = index-1;
-            var originId = split_string('side_',headIndex);
-            debugger;
-            if(size>tmpsize){
-                $('#'+originId).after(twoSideHtml);
-            }else{
-                $('#'+originId).after(sideHtml);
-            }
-        }
-        jsPlumb.addEndpoint(id,{anchors: "RightMiddle"},hollowCircle);
-    }
-
-    function drawSide(size) {
-        debugger;
-        var tmpsize = 10;
-        if(size){
-            tmpsize = size;
-        }
-        var $btn = $('#add_button');
-        var originId = 'side_'+Index;
-        var linePrev = 'line_'+Index;
-        Index++;
-        var id = 'side_'+Index;
-        var lineId = 'line_'+Index;
-        var sideHtml = '<div class="side-border" id='+id+'>\n' +
-            '                <svg xmlns="http://www.w3.org/2000/svg" class="svgForDrag">\n' +
-            '                    <path d="M0,0 l0,100Z"\n' +
-            '                          class="stroke"/>\n' +
-            '                </svg>\n' +
-            '            </div>';
-        $btn.before('<div class="number_item" id="number_'+Index+'">'+Index+'</div>');
-        $('#'+originId).after(sideHtml);
-        $('#'+linePrev).after('<div class="drop_line"  id='+lineId+'></div>');
-        jsPlumb.addEndpoint(id,{anchors: "RightMiddle"},hollowCircle);
-    }
-
-    $('#add_button').on('click',function () {
-        drawSide();
-        socket.emit('add_side');
-    });
-    adjustDesignWidth();
-
-    var arr_2d = [];
-    var line_width = $('.chart-design').eq(0).width();
-    var block_num = Math.floor(line_width/window.R.gridWidth);
-    function arr_2d_push(num) {
-        arr_2d[num] = [];
-        var number = num+1;
-        arr_2d[num][0]={size:20,id:'side_'+number};
-        for(var i=0;i<block_num;i++){
-            arr_2d[num].push({size:20,id:null})
-        }
-        window.R.arr = arr_2d;
-    }
-    function init_arr(index){
-        var arr = [];
-        debugger;
-        for(var i=0;i<block_num+1;i++){
-           arr.push({size:20,id:null})
-        }
-        window.R.arr.splice(index,0,arr);
-        while(index<Index){
-            var real = index + 1;
-            window.R.arr[index][0].id = "side_"+real;
-            index++;
-        }
-    }
-    function init_same_arr(index){
-        var arr = [];
-        debugger;
-        for(var i=0;i<block_num+1;i++){
-            arr.push({size:40,id:null})
-        }
-        window.R.arr.splice(index,0,arr);
-    }
-    arr_2d_push(0);
-    arr_2d_push(1);
-    arr_2d_push(2);
-    arr_2d_push(3);
-
 
 });
     //删除元素按钮
