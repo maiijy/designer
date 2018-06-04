@@ -1470,6 +1470,7 @@
             _getEndpoint = function(uuid) { return endpointsByUUID[uuid]; },
 
 
+            // 根据需求进行重绘时需要
             _addConnectForAuto = function (PageSourceId,PageTargetId,anchorArr) {
                 var anchorPos = anchorArr || ['RightMiddle','LeftMiddle'];
                 var flowConnector={
@@ -1494,6 +1495,11 @@
                     source: PageSourceId, target: PageTargetId
                 },flowConnector);
             }
+
+            // 重排位置数组
+            _resortArrayToPaint = function (){
+
+            }
             /**
              * inits a draggable if it's not already initialised.
              */
@@ -1504,8 +1510,7 @@
                 var top,
                     LINE_HEIGHT = 50,
                     GRID_WIDTH = window.R.gridWidth,
-                    DIV_HEIGHT = 40,
-                    LINE_NOW=0;
+                    DIV_HEIGHT = 40;
 
                 if (!jsPlumbAdapter.headless) {
                     var draggable = isDraggable == null ? false : isDraggable, jpcl = jsPlumb.CurrentLibrary;
@@ -1517,13 +1522,14 @@
                                 stopEvent = jpcl.dragEvents["stop"],
                                 startEvent = jpcl.dragEvents["start"];
                             // 初始化 drag对象的事件
-                            var originalUI = {};
-                            var flag = 0;
-                            var div_id = element[0].id;
-                            var flagForQuick = 0;
-                            var orderNum = 0;
-                            var leftId = '';
-                            var rightId = '';
+                            var originalUI = {},
+                                flag = 0,
+                                div_id = element[0].id,
+                                flagForQuick = 0,
+                                orderNum = 0,
+                                leftId = '',
+                                rightId = '',
+                                LINE_NOW=0;
                             options[startEvent] = _wrap(options[startEvent], function() {
                                 flagForQuick = 0;
                                 var user_name = sessionStorage.getItem("username");
@@ -1532,10 +1538,10 @@
                                 }else{
                                     socket.emit("start_drag",{div_id:div_id,user_name:user_name});
                                 }
+                                // 用作回退的
                                 flag = 0;
                                 originalUI.left = this.offsetLeft;
                                 originalUI.top = this.offsetTop;
-                                // $('#line_'+LINE_NOW).addClass('highlight');
                                 _currentInstance.setHoverSuspended(true);
                                 _currentInstance.select({source:element}).addClass(_currentInstance.elementDraggingClass + " " + _currentInstance.sourceElementDraggingClass, true);
                                 _currentInstance.select({target:element}).addClass(_currentInstance.elementDraggingClass + " " + _currentInstance.targetElementDraggingClass, true);
@@ -1548,12 +1554,13 @@
                                 orderNum = Math.floor(left/GRID_WIDTH);//第几个
                                 var distance = left%GRID_WIDTH;
                                 // if(-5<distance<0){
-                                //     orderNum = orderNum >=0 ? orderNum-1:0;
+                                //     orderNum = orderNum >= 0 ? orderNum-1 : 0;
                                 // }
-                                leftId = window.R.arr[LINE_NOW-1][orderNum].id;
-                                rightId = window.R.arr[LINE_NOW-1][orderNum+1].id?window.R.arr[LINE_NOW-1][orderNum+1].id:0;
+                                leftId = findInArray(LINE_NOW-1,orderNum,1);
+                                rightId = findInArray(LINE_NOW-1,orderNum+1,1);
                                 // 加入新的节点
-                                if(!rightId){
+                                // 做靠近时进行自动吸附
+                                if(rightId === div_id || !rightId){
                                     if(distance<10){
                                         flagForQuick = 1;
                                     }
@@ -1572,86 +1579,92 @@
                                 if(window.R.is_dragging === element[0].id&&window.R.name!==user_name){
                                     flag = '1';
                                 }
-                                // $('#line_'+LINE_NOW).removeClass('highlight');
                                 var order_number = ui.top / LINE_HEIGHT;
-                                if(height/DIV_HEIGHT>1){
-                                    extendHeight(Math.ceil(order_number),0);
-                                }
+
                                 var line = Math.floor(order_number);
                                 var newLeft = orderNum*GRID_WIDTH+0.5*LINE_HEIGHT;
                                 ui.top = line * LINE_HEIGHT +LINE_HEIGHT/2-DIV_HEIGHT/2;
-                                // 插入直接相连的直线段
-                                if (flagForQuick  === 2){
-                                    var conn = jsPlumb.getConnections({
-                                        //only one of source and target is needed, better if both setted
-                                        source: leftId,
-                                        target: rightId
-                                    });
-                                    if (conn[0]) {
-                                        jsPlumb.detach(conn[0]);
-                                    }
-                                    var rightElement =  _gel(rightId);
-                                    var newUi = ui;
-                                    newUi.left = rightElement[0].offsetLeft + GRID_WIDTH + 20;
-                                    var rightLeft = newUi.left - 20;
-                                    debugger;
-                                    // 两点之间进行插入，try
-                                    _addConnectForAuto(div_id,rightId);
-                                    rightElement[0].style.left = rightLeft + "px";
-                                    console.log(rightElement);
-                                    _draw(rightElement, newUi,null,null,false);
-                                    window.R.arr[LINE_NOW-1][orderNum+2].id = rightId;
-
-                                    ui.left = newLeft+20;
-                                    _draw(element, ui,null,null,false);
-                                    this.style.top = ui.top +"px";
-                                    this.style.left = newLeft+"px";
-                                    _addConnectForAuto(leftId,div_id);
-                                    window.R.arr[LINE_NOW-1][orderNum+1].id = div_id;
-                                    window.R.arr[LINE_NOW-1][orderNum+1].size = DIV_HEIGHT;
-                                }
-                                // 自动吸附
-                                else if(flagForQuick){
-                                    debugger;
-                                    var PageSourceId = window.R.arr[LINE_NOW-1][orderNum].id;
-                                    var PageTargetId = div_id;
-                                    ui.left = newLeft+20;
-                                    _draw(element, ui,null,null,false);
-                                    this.style.top = ui.top +"px";
-                                    this.style.left = newLeft+"px";
-                                    // 进行处理，对不同尺寸的进行不同锚点选择
-                                    if(height/DIV_HEIGHT>1){
-                                        var startElement = _gel(PageSourceId);
-                                        if(startElement.hasClass("functionBlock")){
-                                            console.log(startElement);
-                                        }
-                                        if(obj.hasClass("functionBlock")){
-                                            console.log(obj);
-                                        }
-                                        console.log(_gel(PageSourceId));
-                                        // _gel(PageSourceId) - start element
-                                        // obj/this - target element
-                                        console.log(PageSourceId,PageTargetId);
-                                    }
-                                    _addConnectForAuto(PageSourceId,PageTargetId);
-                                    window.R.arr[LINE_NOW-1][orderNum+1].id = div_id;
-                                    window.R.arr[LINE_NOW-1][orderNum+1].size = DIV_HEIGHT;
-                                    console.log(window.R.arr);
-                                }
                                 // 不可移动，恢复原有位置
-                                else if(flag ==='1'){
+                                if(flag ==='1'){
                                     _draw(element, originalUI,null,null,false);
                                     this.style.left = originalUI.left+"px";
                                     this.style.top = originalUI.top+"px";
                                 }
-                                // 正常处理
-                                else{
-                                    socket.emit('div_dragging',{id:element[0].id,ui:ui});
-                                    window.R.is_dragging = '';
-                                    window.R.name = '';
-                                    socket.emit('div_stop');
-                                    _draw(element, ui,null,null,false);
-                                    this.style.top = ui.top +"px";
+                                else {
+                                    // 插入直接相连的直线段
+                                    if (flagForQuick  === 2){
+                                        var conn = jsPlumb.getConnections({
+                                            //only one of source and target is needed, better if both setted
+                                            source: leftId,
+                                            target: rightId
+                                        });
+                                        if (conn[0]) {
+                                            jsPlumb.detach(conn[0]);
+                                        }
+                                        var rightElement =  _gel(rightId);
+                                        var newUi = ui;
+                                        newUi.left = rightElement[0].offsetLeft + GRID_WIDTH + 20;
+                                        var rightLeft = newUi.left - 20;
+                                        // 两点之间进行插入，try
+                                        _addConnectForAuto(div_id,rightId);
+                                        rightElement[0].style.left = rightLeft + "px";
+                                        console.log(rightElement);
+                                        _draw(rightElement, newUi,null,null,false);
+                                        insertToArray(LINE_NOW-1,orderNum+2,rightId);
+                                        ui.left = newLeft+20;
+                                        _draw(element, ui,null,null,false);
+                                        this.style.top = ui.top +"px";
+                                        this.style.left = newLeft+"px";
+                                        _addConnectForAuto(leftId,div_id);
+                                    }
+                                    // 自动吸附
+                                    else if(flagForQuick){
+                                        debugger;
+                                        var PageSourceId = findInArray(LINE_NOW-1,orderNum,1);
+                                        var PageTargetId = div_id;
+                                        ui.left = newLeft+20;
+                                        _draw(element, ui,null,null,false);
+                                        this.style.top = ui.top +"px";
+                                        this.style.left = newLeft+"px";
+                                        // 进行处理，对不同尺寸的进行不同锚点选择
+                                        if(height/DIV_HEIGHT>1){
+                                            var startElement = _gel(PageSourceId);
+                                            if(startElement.hasClass("functionBlock")){
+                                                console.log(startElement);
+                                            }
+                                            if(obj.hasClass("functionBlock")){
+                                                console.log(obj);
+                                            }
+                                            // _gel(PageSourceId) - start element
+                                            // obj/this - target element
+                                        }
+                                        _addConnectForAuto(PageSourceId,PageTargetId);
+                                    }
+                                    // 正常处理
+                                    else{
+                                        socket.emit('div_dragging',{id:element[0].id,ui:ui});
+                                        window.R.is_dragging = '';
+                                        window.R.name = '';
+                                        socket.emit('div_stop');
+                                        _draw(element, ui,null,null,false);
+                                        this.style.top = ui.top +"px";
+                                    }
+                                    // 根据是否拓展高度来选择更新数组
+                                    var posi = checkInArray(div_id);
+                                    debugger;
+                                    if(height/DIV_HEIGHT>1){
+                                        debugger;
+                                       /* if(posi){
+                                            insertToArray(posi.line,posi.column,null,1/2);
+                                        }
+                                        var resArr = findTwoLine();  // 当前的所有高组件
+                                        console.log(resArr);*/   // 所有组件 - componentArr
+                                        // 所以需要先进行收缩，再进行拓宽
+                                        extendHeight(Math.ceil(order_number),0);
+                                        insertToArray(LINE_NOW-1,orderNum+1,div_id,2);
+                                    }else{
+                                        insertToArray(LINE_NOW-1,orderNum+1,div_id);
+                                    }
                                 }
                                 _removeClass(element, "jsPlumb_dragged");
                                 _currentInstance.setHoverSuspended(false);
@@ -6242,7 +6255,8 @@
                         // //
                         // distance>0?tAnchorP[1] = sAnchorP[1]:sAnchorP[1] = tAnchorP[1];
                         connector.type = 'Straight';
-                    }else if(Math.abs(distance)>2){
+                    }else if(Math.abs(distance)>5){
+                        debugger;
                         connector.type = 'Flowchart';
                     }
                     connector.resetBounds();

@@ -52,8 +52,9 @@ body{
 .line_group{
 	display: inline-flex;
 	flex-direction: column;
-	width: 98%;
+	width: 99%;
 	height: 100%;
+	margin-left: -1%;
 }
 .drop_line{
 	width: 100%;

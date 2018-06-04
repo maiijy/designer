@@ -1,10 +1,6 @@
 // 用作连接判断
-$('body').on("mouseover",function (e) {
-    console.log(e.target);
-})
-$(".drop_line").on("mouseover",function () {
-    console.clear();
-    console.log("this");
+$("._jsPlumb_connector ").on("mouseover",function (e) {
+    console.log(e.target)
 })
 //用数组记录下所有连接的组件和连线，用作全局渲染，用比较决定
 
@@ -85,6 +81,8 @@ var LINE_HEIGHT = 50;
 var DIV_HEIGHT = 40;
 var TD_WIDTH = 100;
 var line_width;
+var list=[];//全部的连接点列表
+var componentArr = []; // 所有当前组件
 //记录当前流程框的数量
 sessionStorage['currentChartAmount']=0;
 
@@ -98,12 +96,13 @@ function adjustDesignWidth(){
 }
 adjustDesignWidth();
 var block_num = Math.floor(line_width/window.R.gridWidth);
-console.log(block_num);
+
 function init_arr(index){
     var arr = [];
     for(var i=0;i<block_num+1;i++){
         arr.push({size:20,id:null})
     }
+    arr.repeated = 0;
     window.R.arr.splice(index,0,arr);
     while(index<window.R.Index){
         var real = index + 1;
@@ -116,6 +115,7 @@ function init_same_arr(index){
     for(var i=0;i<block_num+1;i++){
         arr.push({size:40,id:null})
     }
+    arr.repeated = 0;
     window.R.arr.splice(index,0,arr);
 }
 
@@ -152,7 +152,6 @@ function drawTwo(size,index) {
     }else{
         var headIndex = index-1;
         var originId = split_string('side_',headIndex);
-        debugger;
         if(size>tmpsize){
             $('#'+originId).after(twoSideHtml);
         }else{
@@ -161,7 +160,7 @@ function drawTwo(size,index) {
     }
     jsPlumb.addEndpoint(id,{anchors: "RightMiddle"},hollowCircle);
 }
-
+// 当超出的高度组件出现进行拓展
 function extendHeight(th,flag) {
     // 批量做了处理，但要根据数组size来区分是否需要进行操作
     $(".number_item_two").addClass("number_item")
@@ -170,10 +169,16 @@ function extendHeight(th,flag) {
         .addClass("number_item_two");
     $("#side-group").html("");
     for(var i = 1;i<=window.R.Index;i++){
-        if(i==th){
-            init_same_arr(th);
-            window.R.arr[th].size = 40;
+        if(th.indexOf(i) !== -1){
+            console.log(i);
+            // 当某行没有被撑高才成撑高
+            if(window.R.arr[i-1].repeated > 0){
+
+            }else{
+                init_same_arr(i);
+            }
             drawTwo(20,i);
+            window.R.arr[i-1].repeated++;
         }else{
             drawTwo(10,i);
         }
@@ -187,6 +192,10 @@ function extendHeight(th,flag) {
 
     }
 }
+// 当前行没有没有拓宽的组件时，进行收缩
+function shortenHeight(id) {
+    
+}
 function toDelete(obj) {
     var parentDOM=$(obj);
     var parentID=parentDOM.attr('id');
@@ -197,7 +206,62 @@ function toDelete(obj) {
     }
 }
 
+function findInArray(line,column,type) {
+    if(type){
+        if(window.R.arr[line][column].id){
+            return window.R.arr[line][column].id;
+        }else{
+            return false;
+        }
+    }else{
+        return window.R.arr[line][column].size;
+    }
 
+}
+
+function insertToArray(line,column,id,multiple) {
+    var res = findInArray(line,column,1);
+    if(!res){
+        window.R.arr[line][column].id = id;
+        if(multiple){
+            if(multiple < 1){
+                window.R.arr.splice(line, 1);
+            }else{
+                window.R.arr[line][column+1].size *= multiple;
+                window.R.arr[line+1][column].size *= multiple;
+                window.R.arr[line+1][column+1].size *= multiple;
+            }
+            window.R.arr[line][column].size *= multiple;
+        }else{
+
+        }
+        return true;
+    }else{
+        return res;
+    }
+}
+
+function checkInArray(id){
+    for(var i=0,len=componentArr.length;i<len;i++){
+        if(componentArr[i].id === id){
+            return {
+                line:componentArr[i].line,
+                column:componentArr[i].column
+            }
+        }
+    }
+    return false;
+}
+
+function findTwoLine() {
+    var resArr = [];
+    for(var i=0,len=componentArr.length;i<len;i++){
+        if(componentArr[i].size > 1){
+            resArr.push(componentArr[i].line+1)
+        }
+    }
+    return resArr;
+}
 //设置当前部件top,left
 function setChartLocation(top,left){
     $('#lo-x-display').val(top);
@@ -237,7 +301,6 @@ function setChartLineType(type){hollowCircle['connector'][0]=type;}
 //*********************************jsPlumb基础信息配置区域*********************************
 
 //*********************************流程图数据操作区域*********************************
-var list=[];//全部的连接点列表
 
 //生成单个流程图部件数据,用在新建流程图框时使用
 //参数ID表示被push进栈的ID
@@ -352,6 +415,7 @@ function deleteChart(id,undo){
         // 把以删除数据放入栈中以便复原
         chartOperationStack['delete'].push(getSingleChartJson(id));
     }
+    // 删除某组件的所有节点及连线
     jsPlumb.removeAllEndpoints(id);
     $DOM.remove();
     if(undo==false){
@@ -428,6 +492,7 @@ $(document).ready(function(){
         $("#number").html("当前在线的人数为："+data.number);
     });
 
+    /* 同步socket */
     socket.on('drag_start',function (data) {
         var user_name = sessionStorage.getItem("username");
         if(data.name!==user_name){
@@ -498,9 +563,9 @@ $(document).ready(function(){
     socket.on('side_add',function () {
         drawSide();
     });
-
+    /* 同步socket */
+    // 给边块画线描点
     function drawSide(size) {
-        debugger;
         var tmpsize = 10;
         if(size){
             tmpsize = size;
@@ -522,23 +587,24 @@ $(document).ready(function(){
         $('#'+linePrev).after('<div class="drop_line"  id='+lineId+'></div>');
         jsPlumb.addEndpoint(id,{anchors: "RightMiddle"},hollowCircle);
     }
-
+    // 添加边界框
     $('#add_button').on('click',function () {
         drawSide();
         socket.emit('add_side');
     });
 
+    // 初始化二维数组
     var arr_2d = [];
     function arr_2d_push(num) {
         arr_2d[num] = [];
         var number = num+1;
-        arr_2d[num][0]={size:20,id:'side_'+number};
+        arr_2d[num][0]={size:40,id:'side_'+number};
+        arr_2d[num].repeated = 0;
         for(var i=0;i<block_num;i++){
-            arr_2d[num].push({size:20,id:null})
+            arr_2d[num].push({size:40,id:null})
         }
         window.R.arr = arr_2d;
     }
-
     arr_2d_push(0);
     arr_2d_push(1);
     arr_2d_push(2);
@@ -591,26 +657,20 @@ $(document).ready(function(){
             if(left > designWidth){
                 left = designWidth;
             }
-            // 做拓宽处理
-            var height = ui.helper[0].clientHeight;
-            var th = Math.ceil(top/LINE_HEIGHT);
-            if(height/DIV_HEIGHT > 1){
-                extendHeight(th,1);
-            }
             var order_number = top / LINE_HEIGHT;
             var line = Math.floor(order_number);
             top = line * LINE_HEIGHT +LINE_HEIGHT/2-DIV_HEIGHT/2;
-
             var orderNum = Math.floor(left/window.R.gridWidth);//第几个
             var distance = left%window.R.gridWidth;
             // if(-5<distance<0){
             //     orderNum = orderNum>=0 ? orderNum-1:0;
             // }
             console.log(window.R.arr);
-            var isExitId = window.R.arr[line][orderNum].id ?window.R.arr[line][orderNum].id:null ;
+            var isExitId = findInArray(line,orderNum,1);
             if(distance<10 &&  isExitId !== null){
                 left = orderNum*window.R.gridWidth+0.5*TD_WIDTH;
             }
+
             setChartLocation(top,left);//设置坐标
 
             var name=ui.draggable[0].id;//返回被拖动元素的ID
@@ -640,10 +700,22 @@ $(document).ready(function(){
             $("#"+trueId).draggable({containment: "parent"});//保证拖动不跨界,只能在父容器中移动
 
             // changeValue("#"+trueId);
-
+            // 做拓宽处理
+            var height = ui.helper[0].clientHeight;
+            var th = Math.ceil(top/LINE_HEIGHT);
+            debugger;
+            var tmpArr = findTwoLine();
+            var times = Math.ceil(height/DIV_HEIGHT);
+            if(times > 1){
+                tmpArr.push(th);
+                extendHeight(tmpArr,1);
+                insertToArray(line,orderNum+1,trueId,2);
+            }else{
+                insertToArray(line,orderNum+1,trueId);
+            }
             if(distance<10 &&  isExitId !== trueId){
                 if(name === 'functionBlock'){
-                    var newAchs = ['LeftMiddle','LeftThird'];
+                    var newAchs = ['RightMiddle','LeftThird'];
                     FlowConnector.anchors = newAchs;
                 }
                 jsPlumb.connect({
@@ -654,6 +726,14 @@ $(document).ready(function(){
                 window.R.arr[line][orderNum+1].size = DIV_HEIGHT;
             }
 
+            var params = {
+                id:trueId,
+                line:line,
+                column:orderNum+1,
+                size:times
+            }
+            componentArr.push(params);
+            console.log(componentArr);
             list=jsPlumb.getAllConnections();//获取所有的连接
 
 
@@ -679,18 +759,6 @@ $(document).ready(function(){
     });
 
 
-    // $('.droppable').on('dblclick',function(){
-    //     console.log("db");
-    //     sessionStorage['currentChartSelected']='none';//置当前选择的流程图框为空
-    //     $('#B,#I,#U').removeClass('fl-font-style-active');//置当前字体样式选择器为空
-    //     $('#btn-align-center,#btn-align-left,#btn-align-right,#btn-align-none').removeClass('fl-align-style-active');//置当前对齐方式为空
-    // });
-
-    jsPlumb.bind("mouseenter",function (e,callback) {
-        
-       alert("on");
-    });
-
     //删除连接线
     jsPlumb.bind("click",function(conn,originalEvent){
         
@@ -699,6 +767,8 @@ $(document).ready(function(){
         }
     });
     var index=0;
+
+    // 点击进行提示高亮
     $(document).on("click",function (e) {
        var top = e.clientY;
         $(".highlight").removeClass("highlight");
@@ -853,25 +923,6 @@ $(document).ready(function(){
     // });
 
 
-
-    //删除元素按钮
-    //设计区域被双击时
-
-    function getMousePos(event) {
-        var e = event || window.event;
-        return {'x':e.screenX,'y':screenY}
-    }
-
-    $(document).on('drag','._jsPlumb_connector ',function () {
-    });
-
-
-    //序列化全部流程图数据,json格式
-    function saveConnection() {
-        var obj = {};
-
-        return JSON.stringify(obj);
-    }
     function save(){
         var obj = {};
         var connects=[];
@@ -959,23 +1010,13 @@ $(document).ready(function(){
 
     // var dataJson = '{"connects":[{"ConnectionId":"con_12","PageSourceId":"rect-010","PageTargetId":"roundedRect-01112"}],"block":[{"BlockId":"rect-010","BlockContent":"","BlockX":498,"BlockY":108,"BlockWidth":40,"BlockHeight":20,"BlockBorderRadius":"0px","BlockBackground":"rgb(255, 255, 255)","BlockBorderStyle":"solid","BlockBorderWidth":"2px","BlockborderColor":"rgb(0, 0, 0)"},{"BlockId":"roundedRect-01112","BlockContent":"","BlockX":740,"BlockY":110,"BlockWidth":40,"BlockHeight":20,"BlockBorderRadius":"8px","BlockBackground":"rgb(255, 255, 255)","BlockBorderStyle":"solid","BlockBorderWidth":"2px","BlockborderColor":"rgb(0, 0, 0)"}]}';
     var dataJson;
-    var dataxml1;
-    var dataxml2;
     $('#export').on('click',function () {
         console.clear();
         console.log("获取的连接:");
         console.log(list);
        dataJson = save();
-        // dataxml1 = fnJson2xml(saveConnection());
-        // dataxml2 = fnJson2xml(save());
     });
     $('#import').on('click',function () {
-        // console.log(dataxml1);
-        // console.log(dataxml2);
-        // console.log(fnXml2json(dataxml1));
-        // Xml2Json(dataxml2)
-        <!-- 读取一行内容 -->
-        <!-- 读取全部内容 -->
        loadChartByJSON(dataJson);
     });
     //通过json加载流程图
@@ -1023,24 +1064,6 @@ $(document).ready(function(){
             anchorPos = [];
             anchorPos.push(unpack['connects'][i]['ConSourcePos']);
             anchorPos.push(unpack['connects'][i]['ConTargetPos']);
-            var flowConnector={
-                anchors:anchorPos,
-                endpoint: ["Dot", { radius: 1 }],  //端点的外形
-                connectorStyle: connectorPaintStyle,//连接线的色彩,大小样式
-                connectorHoverStyle: connectorHoverStyle,
-                paintStyle: {
-                    strokeStyle: "rgb(0,0,0)",
-                    fillStyle: "rgb(0,0,0)",
-                    opacity: 0.5,
-                    radius: 1,
-                    lineWidth: 2,
-                    outlineWidth:0
-                },//端点的色彩样式
-                isSource: true,    //是否可以拖动(作为连线出发点)
-                connector: ["Flowchart", { curviness:100 } ],//设置连线为贝塞尔曲线
-                isTarget: true,    //是否可以放置(连线终点)
-                maxConnections: -1,    // 设置连接点最多可以连接几条线
-            };
             //用jsPlumb添加锚点
             jsPlumb.addEndpoint(PageSourceId, {anchors: "RightMiddle"}, hollowCircle);
             jsPlumb.addEndpoint(PageSourceId, {anchors: "LeftMiddle"}, hollowCircle);
@@ -1056,7 +1079,7 @@ $(document).ready(function(){
 
             jsPlumb.connect({
                     source: PageSourceId, target: PageTargetId
-                },flowConnector);
+                },FlowConnector);
         }
 
         return true;
@@ -1067,54 +1090,3 @@ $(document).ready(function(){
     });
 
 
-    function fnJson2xml(data){
-        var xotree = new XML.ObjTree();
-        // var jsonText = document.getElementById("json").value;
-//将json字符串转为json对象后转为xml字符串
-        var json = eval("(" + data + ")");
-        var xml = xotree.writeXML(json);
-        //使用jkl-dumper.js中的formatXml方法将xml字符串格式化
-        var xmlText = formatXml(xml);
-        return xmlText;
-        // document.getElementById("xml").value = xmlText;
-    }
-
-    function Xml2Json(data) {
-        //创建文档对象
-        var parser=new DOMParser();
-        var xmlDoc=parser.parseFromString(data,"text/xml");
-        var obj = {};
-        //提取数据
-        var nodes2 = xmlDoc.getElementsByTagName('block');
-        debugger;
-        var arr2 =  xmlOne(nodes2);
-        obj['block'] = arr2;
-        console.log(obj);
-    }
-
-    function xmlOne(nodes) {
-        debugger;
-        var arr = [];
-        for (var i = 0; i < nodes.length; i++) {
-            var arr1 = {};
-            for(var j= 0;j<nodes[i].children.length;j++){
-                var cname = nodes[i].children[j].nodeName;
-                arr1[cname] = nodes[i].children[j].textContent;
-            }
-            arr.push(arr1);
-        };
-        return arr;
-    }
-
-    function fnXml2json(data){
-        //将xml字符串转为json
-        debugger;
-        var xotree = new XML.ObjTree();
-        // var xmlText = document.getElementById("xml").value;
-        var json = xotree.parseXML(data);
-        //将json对象转为格式化的字符串
-        var dumper = new JKL.Dumper();
-        var jsonText = dumper.dump(json);
-        return jsonText;
-        // document.getElementById("json").value = jsonText;
-    }
