@@ -82,7 +82,6 @@ var DIV_HEIGHT = 40;
 var TD_WIDTH = 100;
 var line_width;
 var list=[];//全部的连接点列表
-var componentArr = []; // 所有当前组件
 //记录当前流程框的数量
 sessionStorage['currentChartAmount']=0;
 
@@ -242,11 +241,11 @@ function insertToArray(line,column,id,multiple) {
 }
 
 function checkInArray(id){
-    for(var i=0,len=componentArr.length;i<len;i++){
-        if(componentArr[i].id === id){
+    for(var i=0,len=window.R.componentArr.length;i<len;i++){
+        if(window.R.componentArr[i].id === id){
             return {
-                line:componentArr[i].line,
-                column:componentArr[i].column
+                line:window.R.componentArr[i].line,
+                column:window.R.componentArr[i].column
             }
         }
     }
@@ -255,9 +254,9 @@ function checkInArray(id){
 
 function findTwoLine() {
     var resArr = [];
-    for(var i=0,len=componentArr.length;i<len;i++){
-        if(componentArr[i].size > 1){
-            resArr.push(componentArr[i].line+1)
+    for(var i=0,len=window.R.componentArr.length;i<len;i++){
+        if(window.R.componentArr[i].size > 1){
+            resArr.push(window.R.componentArr[i].line+1)
         }
     }
     return resArr;
@@ -732,8 +731,8 @@ $(document).ready(function(){
                 column:orderNum+1,
                 size:times
             }
-            componentArr.push(params);
-            console.log(componentArr);
+            window.R.componentArr.push(params);
+            console.log(window.R.componentArr);
             list=jsPlumb.getAllConnections();//获取所有的连接
 
 

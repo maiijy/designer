@@ -1659,6 +1659,9 @@
                                         }
                                         var resArr = findTwoLine();  // 当前的所有高组件
                                         console.log(resArr);*/   // 所有组件 - componentArr
+                                        var componentArr = window.R.componentArr;
+                                        var resArr = findTwoLine();  // 当前的所有高组件
+                                        console.log(componentArr,resArr);
                                         // 所以需要先进行收缩，再进行拓宽
                                         extendHeight(Math.ceil(order_number),0);
                                         insertToArray(LINE_NOW-1,orderNum+1,div_id,2);

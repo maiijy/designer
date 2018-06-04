@@ -6,6 +6,7 @@
       index:'0',
       arr:[],
       Index:4,
+      componentArr:[],
       gridWidth:90,
         connectorPaintStyle : {
             lineWidth: 2,
