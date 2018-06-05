@@ -1591,6 +1591,47 @@
                                     this.style.top = originalUI.top+"px";
                                 }
                                 else {
+                                    // 根据是否拓展高度来选择更新数组
+                                    var posi = checkInArray(div_id);
+                                    var sizeNow = 1;
+                                    if(posi){
+                                        sizeNow = posi.size;
+                                    }
+                                    if(height/DIV_HEIGHT>1){
+                                        var componentArr = window.R.componentArr;
+                                        var resArr = findTwoLine();  // 当前的所有高组件
+                                        var jdugeArr = [];
+                                        var flag = null;
+                                        var addNum = Math.ceil(order_number);
+                                        for(var i=0,len = componentArr.length;i<len;i++){
+                                            if(componentArr[i].id === div_id){
+                                                flag = componentArr[i].line;
+                                            }
+                                        }
+                                        if(flag!==null){
+                                            var index = resArr.indexOf(flag+1);
+                                            resArr.splice(index,1);
+                                            jdugeArr.push(flag+1);
+                                            if(resArr.indexOf(flag+1) === -1){
+                                                insertToArray(posi.line,posi.column,div_id,1/2);
+                                                ui.top -= LINE_HEIGHT;
+                                            }
+                                        }
+                                        for(var i=0,len = jdugeArr.length;i<len;i++){
+                                            if(jdugeArr[i] < addNum){
+                                                addNum--;
+                                                LINE_NOW--;
+                                            }
+                                        }
+                                        componentArr[posi.index].line = addNum - 1;
+                                        resArr.push(addNum);
+                                        // 所以需要先进行收缩，再进行拓宽
+                                        extendHeight(resArr,0);
+                                        insertToArray(LINE_NOW-1,orderNum+1,div_id,2);
+                                    }else{
+                                        insertToArray(LINE_NOW-1,orderNum+1,div_id);
+                                    }
+
                                     // 插入直接相连的直线段
                                     if (flagForQuick  === 2){
                                         var conn = jsPlumb.getConnections({
@@ -1619,7 +1660,9 @@
                                     }
                                     // 自动吸附
                                     else if(flagForQuick){
-                                        debugger;
+                                        if(sizeNow>1){
+                                            // 对当前id做左右对比，采用不同的描点组合
+                                        }
                                         var PageSourceId = findInArray(LINE_NOW-1,orderNum,1);
                                         var PageTargetId = div_id;
                                         ui.left = newLeft+20;
@@ -1642,31 +1685,15 @@
                                     }
                                     // 正常处理
                                     else{
+                                        ui.left = newLeft+20;
                                         socket.emit('div_dragging',{id:element[0].id,ui:ui});
                                         window.R.is_dragging = '';
                                         window.R.name = '';
                                         socket.emit('div_stop');
+                                        console.log(ui.left);
                                         _draw(element, ui,null,null,false);
                                         this.style.top = ui.top +"px";
-                                    }
-                                    // 根据是否拓展高度来选择更新数组
-                                    var posi = checkInArray(div_id);
-                                    debugger;
-                                    if(height/DIV_HEIGHT>1){
-                                        debugger;
-                                       /* if(posi){
-                                            insertToArray(posi.line,posi.column,null,1/2);
-                                        }
-                                        var resArr = findTwoLine();  // 当前的所有高组件
-                                        console.log(resArr);*/   // 所有组件 - componentArr
-                                        var componentArr = window.R.componentArr;
-                                        var resArr = findTwoLine();  // 当前的所有高组件
-                                        console.log(componentArr,resArr);
-                                        // 所以需要先进行收缩，再进行拓宽
-                                        extendHeight(Math.ceil(order_number),0);
-                                        insertToArray(LINE_NOW-1,orderNum+1,div_id,2);
-                                    }else{
-                                        insertToArray(LINE_NOW-1,orderNum+1,div_id);
+                                        this.style.left = newLeft +"px";
                                     }
                                 }
                                 _removeClass(element, "jsPlumb_dragged");
@@ -6259,7 +6286,6 @@
                         // distance>0?tAnchorP[1] = sAnchorP[1]:sAnchorP[1] = tAnchorP[1];
                         connector.type = 'Straight';
                     }else if(Math.abs(distance)>5){
-                        debugger;
                         connector.type = 'Flowchart';
                     }
                     connector.resetBounds();

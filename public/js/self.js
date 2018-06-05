@@ -161,6 +161,7 @@ function drawTwo(size,index) {
 }
 // 当超出的高度组件出现进行拓展
 function extendHeight(th,flag) {
+    debugger;
     // 批量做了处理，但要根据数组size来区分是否需要进行操作
     $(".number_item_two").addClass("number_item")
         .removeClass("number_item_two");
@@ -218,26 +219,34 @@ function findInArray(line,column,type) {
 
 }
 
+function changeArrayForH(line,column,multiple,id) {
+    window.R.arr[line][column].size *= multiple;
+    window.R.arr[line][column].id = id;
+}
+
 function insertToArray(line,column,id,multiple) {
     var res = findInArray(line,column,1);
-    if(!res){
-        window.R.arr[line][column].id = id;
-        if(multiple){
-            if(multiple < 1){
-                window.R.arr.splice(line, 1);
-            }else{
-                window.R.arr[line][column+1].size *= multiple;
-                window.R.arr[line+1][column].size *= multiple;
-                window.R.arr[line+1][column+1].size *= multiple;
-            }
-            window.R.arr[line][column].size *= multiple;
-        }else{
-
+    window.R.arr[line][column].id = id;
+    if(multiple!==null){
+        changeArrayForH(line,column,multiple,id);
+        changeArrayForH(line,column+1,multiple,id);
+        changeArrayForH(line+1,column,multiple,id);
+        changeArrayForH(line+1,column+1,multiple,id);
+        if(multiple < 1){
+            window.R.arr.splice(line, 1);
+            //window.R.arr[line].repeated--;
+        }else if(multiple>1){
+            window.R.arr[line].repeated++;
         }
-        return true;
     }else{
-        return res;
+
     }
+    if(res){
+        window.R.arr[line][column+1].id = null;
+    }else{
+        return true;
+    }
+
 }
 
 function checkInArray(id){
@@ -245,7 +254,9 @@ function checkInArray(id){
         if(window.R.componentArr[i].id === id){
             return {
                 line:window.R.componentArr[i].line,
-                column:window.R.componentArr[i].column
+                column:window.R.componentArr[i].column,
+                index:i,
+                size:window.R.componentArr[i].size
             }
         }
     }
